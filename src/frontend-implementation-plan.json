@@ -1,0 +1,50 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Manager operator activity overview dashboard (frontend)",
+  "requirements": [
+    {
+      "id": "REQ-12",
+      "summary": "Create a manager-only operator activity overview page with sortable table, inactivity threshold highlighting, and React Query fetching.",
+      "acceptanceCriteria": [
+        "A new page exists under a manager-only route and is protected by the existing RequireAuth + RequireRole(requiredRole=\"admin\") guards.",
+        "The page displays a table with at least: operator name (if available), principal, last activity (human readable), days inactive, and a status badge (Active/Inactive) based on a configurable threshold (default 7 days).",
+        "The page uses React Query (via a new hook in frontend/src/hooks/useQueries.ts) to fetch the new backend activity list query, and refreshes when the user changes the threshold and clicks an update/refetch control.",
+        "Empty/loading states are handled (loading indicator while fetching; clear empty state text if there is no activity data)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/manager/OperatorActivityPage.tsx",
+          "operation": "create",
+          "description": "Implement the new single-screen manager Operator Activity overview UI: threshold input (default 7 days) + update/refetch control, sortable table (name, principal, last activity, days inactive, status badge), derived days-inactive calculation, Active/Inactive highlighting based on threshold, and loading/empty states using existing layout and shadcn-ui components (e.g., Card, Table, Badge, Button, Input). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a new React Query hook (e.g., useGetAllOperatorActivity) that calls the backend capability getAllOperatorActivity() and returns OperatorProfileActivity[] with a stable queryKey; expose refetch for the page’s manual refresh control. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "summary": "Add routing and header navigation entry so managers can reach the operator activity overview page.",
+      "acceptanceCriteria": [
+        "frontend/src/App.tsx includes a new route (e.g., /manager/activity) pointing to the new page and wrapped with RequireAuth + RequireRole(requiredRole=\"admin\").",
+        "frontend/src/components/layout/AppHeader.tsx includes a new manager nav item linking to the new route with an appropriate English label (e.g., \"Operator Activity\").",
+        "The new page is reachable via the header and renders without console errors."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Register a new manager-only route (e.g., /manager/activity) that renders the new OperatorActivityPage wrapped in existing RequireAuth + RequireRole(requiredRole=\"admin\"). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/layout/AppHeader.tsx",
+          "operation": "modify",
+          "description": "Add a new manager navigation item labeled in English (e.g., \"Operator Activity\") pointing to the new /manager/activity route within the existing manager section shown to admins. Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}

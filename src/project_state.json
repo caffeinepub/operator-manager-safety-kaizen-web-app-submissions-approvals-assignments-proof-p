@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 5,
+  "summary": "Build a web app for operators and managers to submit and manage safety observations (Q SUSAs, Q hazards, safety hazards) and Kaizen suggestions with approvals, notifications, departmental assignment, photo proof, and analytics.",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-implement-internet-identity-sign-in-and-role-based-access-for-two-user-types-operator-and-manager-and-optionally-a-department-user-role-if-needed-for-kaizen-execution-provide-an-admin-manager-only-ui-to-assign-roles-to-registered-principals-so-access-to-features-is-permissioned",
+      "title": "Implement Internet Identity sign-in and role-based access for two user types: Operator and Manager (and optionally a Department user role if needed for Kaizen execution). Provide an admin/manager-only UI to assign roles to registered principals so access to features is permissioned.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-operator-facing-forms-to-submit-the-following-observation-types-q-susa-q-hazards-and-safety-hazards-each-submission-must-store-type-title-summary-detailed-description-optional-area-line-department-timestamp-and-submitter-principal-provide-a-list-view-with-filtering-by-type-date-status-and-a-detail-view-for-each-submission",
+      "title": "Create operator-facing forms to submit the following observation types: Q SUSA, Q Hazards, and Safety Hazards. Each submission must store: type, title/summary, detailed description, optional area/line/department, timestamp, and submitter principal; provide a list view with filtering by type/date/status and a detail view for each submission.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-kaizen-suggestion-submission-for-operators-with-fields-title-problem-statement-suggested-improvement-expected-benefit-optional-department-area-and-timestamp-kaizen-items-must-have-a-lifecycle-status-submitted-approved-rejected-assigned-in-progress-implemented-and-closed",
+      "title": "Add Kaizen suggestion submission for operators with fields: title, problem statement, suggested improvement, expected benefit, optional department/area, and timestamp. Kaizen items must have a lifecycle status: Submitted, Approved, Rejected, Assigned, In Progress, Implemented, and Closed.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-manager-approval-workflow-for-kaizen-managers-can-approve-or-reject-with-a-required-comment-reason-status-updates-must-be-written-server-side-and-reflected-immediately-in-the-ui-after-the-action-completes",
+      "title": "Implement a manager approval workflow for Kaizen: managers can approve or reject with a required comment/reason; status updates must be written server-side and reflected immediately in the UI after the action completes.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-kaizen-approval-support-assignment-to-a-concerned-department-and-allow-department-assignees-to-fill-in-required-tools-materials-free-text-and-or-structured-list-track-who-assigned-it-assigned-department-and-required-tools-materials-entries-with-timestamps",
+      "title": "On Kaizen approval, support assignment to a concerned department and allow department/assignees to fill in required tools/materials (free-text and/or structured list). Track who assigned it, assigned department, and required tools/materials entries with timestamps.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-after-kaizen-implementation-allow-uploading-one-or-more-photos-as-proof-photos-must-be-stored-in-the-backend-as-blobs-and-retrievable-for-display-on-the-kaizen-detail-page-with-basic-metadata-uploader-timestamp-filename-content-type",
+      "title": "After Kaizen implementation, allow uploading one or more photos as proof. Photos must be stored in the backend (as blobs) and retrievable for display on the Kaizen detail page with basic metadata (uploader, timestamp, filename/content type).",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-usage-monitoring-to-detect-when-an-operator-is-not-using-the-app-record-the-operator-s-last-activity-timestamp-e-g-on-sign-in-and-periodic-heartbeat-pings-while-the-app-is-open-provide-a-manager-dashboard-that-highlights-inactive-operators-e-g-no-activity-for-n-days-and-allows-exporting-downloading-a-simple-csv-report-of-inactivity",
+      "title": "Add usage monitoring to detect when an operator is not using the app: record the operator’s last activity timestamp (e.g., on sign-in and periodic 'heartbeat' pings while the app is open). Provide a manager dashboard that highlights inactive operators (e.g., no activity for N days) and allows exporting/downloading a simple CSV report of inactivity.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-provide-analytics-screens-for-managers-showing-trends-and-gaps-using-built-in-metrics-non-llm-counts-over-time-top-categories-areas-departments-approval-rates-average-time-to-decision-for-kaizen-and-inactivity-distribution-include-a-gaps-view-that-flags-areas-departments-operators-with-low-submission-activity-relative-to-others",
+      "title": "Provide analytics screens for managers showing trends and gaps using built-in metrics (non-LLM): counts over time, top categories/areas/departments, approval rates, average time-to-decision for Kaizen, and inactivity distribution. Include a 'gaps' view that flags areas/departments/operators with low submission activity relative to others.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-coherent-distinct-visual-theme-for-the-app-typography-spacing-component-styling-and-page-layout-suitable-for-an-industrial-continuous-improvement-tool-apply-it-consistently-across-login-dashboards-forms-lists-and-detail-pages",
+      "title": "Create a coherent, distinct visual theme for the app (typography, spacing, component styling, and page layout) suitable for an industrial continuous-improvement tool. Apply it consistently across login, dashboards, forms, lists, and detail pages.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-and-include-basic-static-brand-assets-and-render-them-in-the-ui-an-app-logo-and-a-simple-dashboard-illustration-empty-state-illustration-store-generated-images-under-frontend-public-assets-generated-and-reference-them-directly-from-the-frontend-not-via-backend",
+      "title": "Generate and include basic static brand assets and render them in the UI: an app logo and a simple dashboard illustration/empty-state illustration. Store generated images under frontend/public/assets/generated and reference them directly from the frontend (not via backend).",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-manager-page-that-provides-a-simple-single-screen-overview-of-operator-activity-including-a-sortable-table-of-operators-with-last-activity-time-and-a-derived-days-inactive-value-plus-an-inactivity-threshold-control-that-highlights-operators-as-active-vs-inactive",
+      "title": "Create a new manager page that provides a simple, single-screen overview of operator activity, including a sortable table of operators with last activity time and a derived 'days inactive' value, plus an inactivity threshold control that highlights operators as Active vs Inactive.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-navigation-and-routing-for-the-new-manager-operator-activity-overview-page-so-managers-can-access-it-from-the-header-manager-section",
+      "title": "Add navigation and routing for the new manager operator-activity overview page so managers can access it from the header manager section.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Role-based app for operators and managers (authentication + permissions)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Operator forms to submit Q SUSA / Q hazards / safety hazards observations",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Kaizen suggestion submission with approval/rejection workflow and automatic status updates",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Usage monitoring and timely notifications when an operator is not using the app",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "On Kaizen approval, assign to concerned department and allow department to enter required tools/materials",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "After Kaizen implementation, allow photo upload as proof of concept and implementation",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "AI analytics to identify what analysis operators can do and highlight gaps/trends",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Add a simple manager dashboard UI to more easily review operator activity",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Add a manager/admin-only backend query that returns a complete operator activity list (not just inactive operators) so managers can review overall operator usage in one place. The returned data must include each operator principal, their lastActivity timestamp, and (when available) the operator's saved profile name/role from userProfiles.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Operator/Manager Safety & Kaizen Web App (Submissions, Approvals, Assignments, Proof Photos, Usage & Analytics)",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

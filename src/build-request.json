@@ -1,0 +1,77 @@
+{
+  "kind": "build_request",
+  "title": "Add manager operator-activity overview dashboard",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-11",
+      "text": "Add a manager/admin-only backend query that returns a complete operator activity list (not just inactive operators) so managers can review overall operator usage in one place. The returned data must include each operator principal, their lastActivity timestamp, and (when available) the operator's saved profile name/role from userProfiles.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "Yes it's a great idea please add"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Calling the new query as an admin/manager returns an array including all principals present in the operatorActivity map, sorted by lastActivity (most recent first).",
+        "Each returned row includes: operator principal, lastActivity timestamp, and optional profile fields (e.g., name, role) when a profile exists for that principal.",
+        "Non-admin callers are rejected with an authorization error consistent with existing admin-only methods (e.g., getInactiveOperators)."
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "text": "Create a new manager page that provides a simple, single-screen overview of operator activity, including a sortable table of operators with last activity time and a derived 'days inactive' value, plus an inactivity threshold control that highlights operators as Active vs Inactive.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "Yes it's a great idea please add"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A new page exists under a manager-only route and is protected by the existing RequireAuth + RequireRole(requiredRole=\"admin\") guards.",
+        "The page displays a table with at least: operator name (if available), principal, last activity (human readable), days inactive, and a status badge (Active/Inactive) based on a configurable threshold (default 7 days).",
+        "The page uses React Query (via a new hook in frontend/src/hooks/useQueries.ts) to fetch the new backend activity list query, and refreshes when the user changes the threshold and clicks an update/refetch control.",
+        "Empty/loading states are handled (loading indicator while fetching; clear empty state text if there is no activity data)."
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "text": "Add navigation and routing for the new manager operator-activity overview page so managers can access it from the header manager section.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "Yes it's a great idea please add"
+        ]
+      },
+      "acceptanceCriteria": [
+        "frontend/src/App.tsx includes a new route (e.g., /manager/activity) pointing to the new page and wrapped with RequireAuth + RequireRole(requiredRole=\"admin\").",
+        "frontend/src/components/layout/AppHeader.tsx includes a new manager nav item linking to the new route with an appropriate English label (e.g., \"Operator Activity\").",
+        "The new page is reachable via the header and renders without console errors."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional canisters/services.",
+    "Only create backend/migration.mo if an actual state migration is required; adding a new query/type should not trigger a migration by itself.",
+    "Do not modify frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui (compose existing UI components instead).",
+    "Use English for all user-facing UI text."
+  ],
+  "nonGoals": [
+    "Do not add real-time features (WebSockets/push) for live activity updates; periodic refetch/manual refresh is sufficient.",
+    "Do not add third-party analytics integrations or external databases.",
+    "Do not change the existing inactivity dashboard behavior; the new page is an additional, simpler overview."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

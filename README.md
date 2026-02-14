@@ -1,2 +1,3 @@
-# operator-manager-safety-kaizen-web-app-submissions-approvals-assignments-proof-p
-Exported from Caffeine project: Operator/Manager Safety &amp; Kaizen Web App (Submissions, Approvals, Assignments, Proof Photos, Usage &amp; Analytics)
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`
