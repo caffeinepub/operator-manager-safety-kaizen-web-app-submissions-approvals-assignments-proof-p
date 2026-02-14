@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RefreshCw, Users } from 'lucide-react';
-import type { OperatorProfileActivity } from '../../backend';
 
 export default function OperatorActivityPage() {
   const [thresholdDays, setThresholdDays] = useState(7);
@@ -25,30 +24,42 @@ export default function OperatorActivityPage() {
   };
 
   const calculateDaysInactive = (lastActivity: bigint): number => {
-    const now = Date.now() * 1_000_000; // Convert to nanoseconds
-    const diff = now - Number(lastActivity);
-    return Math.floor(diff / (24 * 60 * 60 * 1_000_000_000));
+    try {
+      const nowNs = BigInt(Date.now()) * BigInt(1_000_000);
+      const diff = nowNs - lastActivity;
+      const daysNs = BigInt(24 * 60 * 60 * 1_000_000_000);
+      return Number(diff / daysNs);
+    } catch (error) {
+      console.error('Error calculating days inactive:', error);
+      return 0;
+    }
   };
 
   const formatLastActivity = (timestamp: bigint): string => {
-    const date = new Date(Number(timestamp) / 1_000_000);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    try {
+      const timestampMs = Number(timestamp / BigInt(1_000_000));
+      const date = new Date(timestampMs);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) {
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      if (diffHours === 0) {
-        const diffMinutes = Math.floor(diffMs / (1000 * 60));
-        return diffMinutes <= 1 ? 'Just now' : `${diffMinutes} minutes ago`;
+      if (diffDays === 0) {
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        if (diffHours === 0) {
+          const diffMinutes = Math.floor(diffMs / (1000 * 60));
+          return diffMinutes <= 1 ? 'Just now' : `${diffMinutes} minutes ago`;
+        }
+        return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+      } else if (diffDays === 1) {
+        return 'Yesterday';
+      } else if (diffDays < 7) {
+        return `${diffDays} days ago`;
+      } else {
+        return date.toLocaleDateString();
       }
-      return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
-    } else if (diffDays === 1) {
-      return 'Yesterday';
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
-    } else {
-      return date.toLocaleDateString();
+    } catch (error) {
+      console.error('Error formatting last activity:', error);
+      return 'Unknown';
     }
   };
 
@@ -65,7 +76,7 @@ export default function OperatorActivityPage() {
       const nameB = b.name || b.operator.toString();
       comparison = nameA.localeCompare(nameB);
     } else if (sortField === 'lastActivity') {
-      comparison = Number(a.lastActivity) - Number(b.lastActivity);
+      comparison = Number(a.lastActivity - b.lastActivity);
     } else if (sortField === 'daysInactive') {
       comparison = a.daysInactive - b.daysInactive;
     }

@@ -1,9 +1,14 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
-  "summary": "Build a web app for operators and managers to submit and manage safety observations (Q SUSAs, Q hazards, safety hazards) and Kaizen suggestions with approvals, notifications, departmental assignment, photo proof, and analytics.",
+  "projectStateVersion": 19,
+  "summary": "Expand manager workflow so that after operators submit any Kaizen, hazard, or SUSA, managers are notified and can approve/reject, and the decision/status is visible to operators in their login experience.",
   "architectural_notes": [],
-  "known_issues": [],
+  "known_issues": [
+    "Login page branding/theme changes are not appearing (login page not updated yet).",
+    "Deployment/build is failing (deployment encountered an error; internal LLM/build error reported during attempted update).",
+    "Requested changes to login flow/UI are not reflected; user still sees the earlier login experience and needs two distinct login options (Operator and Manager).",
+    "Login page is showing a different logo than the one provided/expected (logo asset mismatch)."
+  ],
   "isFixRequest": false,
   "existing_features": [
     {
@@ -101,6 +106,142 @@
         "REQ-13"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-ensure-the-login-page-reflects-the-latest-branding-theme-changes-in-production-including-consistent-styling-layout-and-the-correct-rendering-of-the-existing-generated-brand-images-logo-and-illustration-on-the-login-route-and-when-requireauth-renders-the-loginpage-fallback",
+      "title": "Ensure the Login page reflects the latest branding/theme changes in production, including consistent styling, layout, and the correct rendering of the existing generated brand images (logo and illustration) on the /login route and when RequireAuth renders the LoginPage fallback.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-clear-manager-facing-guidance-and-navigation-to-handle-kaizen-approvals-rejections-managers-must-be-able-to-easily-find-kaizens-in-submitted-status-and-perform-approve-or-reject-actions-from-the-ui-with-the-required-comment-reason-captured-and-shown-on-the-kaizen-detail-page-after-the-decision",
+      "title": "Add clear, manager-facing guidance and navigation to handle Kaizen approvals/rejections: managers must be able to easily find Kaizens in Submitted status and perform Approve or Reject actions from the UI, with the required comment/reason captured and shown on the Kaizen detail page after the decision.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-use-explicit-english-user-facing-copy-in-the-manager-decision-area-to-explain-how-approval-rejection-works-who-can-do-it-when-it-is-available-and-that-a-comment-reason-is-required",
+      "title": "Use explicit English user-facing copy in the manager decision area to explain how approval/rejection works (who can do it, when it is available, and that a comment/reason is required).",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-investigate-and-fix-the-current-build-deployment-failure-so-the-application-can-compile-and-deploy-successfully-without-internal-errors",
+      "title": "Investigate and fix the current build/deployment failure so the application can compile and deploy successfully without internal errors.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-login-experience-to-present-two-distinct-internet-identity-login-entry-points-sign-in-as-operator-and-sign-in-as-manager-so-users-can-explicitly-choose-their-intended-role-path-at-login",
+      "title": "Update the login experience to present two distinct Internet Identity login entry points: “Sign in as Operator” and “Sign in as Manager”, so users can explicitly choose their intended role path at login.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-persist-the-user-s-selected-login-option-operator-vs-manager-for-the-current-browser-session-and-use-it-to-control-the-post-login-redirect-behavior",
+      "title": "Persist the user’s selected login option (Operator vs Manager) for the current browser session and use it to control the post-login redirect behavior.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-two-option-login-ui-is-used-consistently-whether-the-user-visits-the-login-route-directly-or-is-shown-the-login-ui-via-the-requireauth-unauthenticated-fallback",
+      "title": "Ensure the two-option login UI is used consistently whether the user visits the /login route directly or is shown the login UI via the RequireAuth unauthenticated fallback.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frontend-manager-ui-to-review-newly-submitted-observations-and-perform-approve-reject-actions-with-a-required-comment-reason-using-clear-english-guidance-and-immediate-ui-refresh-after-the-action-completes",
+      "title": "Add frontend manager UI to review newly submitted Observations and perform Approve/Reject actions with a required comment/reason, using clear English guidance and immediate UI refresh after the action completes.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-operator-facing-observation-list-detail-screens-so-operators-can-see-manager-decisions-status-manager-comment-reason-for-their-submitted-hazards-susa-observations",
+      "title": "Update operator-facing Observation list/detail screens so operators can see manager decisions (status + manager comment/reason) for their submitted Hazards/SUSA Observations.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-mutations-for-observation-approval-rejection-and-ensure-relevant-queries-observations-list-detail-dashboard-counts-if-applicable-are-invalidated-refetched-after-manager-actions",
+      "title": "Add React Query hooks/mutations for Observation approval/rejection and ensure relevant queries (Observations list/detail, Dashboard counts if applicable) are invalidated/refetched after manager actions.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-the-two-uploaded-images-to-the-frontend-as-static-generated-assets-under-frontend-public-assets-generated-so-they-can-be-referenced-directly-by-the-login-page",
+      "title": "Add the two uploaded images to the frontend as static generated assets under `frontend/public/assets/generated` so they can be referenced directly by the Login page.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-src-pages-loginpage-tsx-to-use-the-uploaded-itc-limited-logo-image-instead-of-the-current-assets-generated-kaizen-logo-dim-512x512-png",
+      "title": "Update `frontend/src/pages/LoginPage.tsx` to use the uploaded ITC Limited logo image instead of the current `/assets/generated/kaizen-logo.dim_512x512.png`.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-src-pages-loginpage-tsx-copy-so-the-primary-title-text-reads-exactly-itc-khordha-safetyhub-english",
+      "title": "Update `frontend/src/pages/LoginPage.tsx` copy so the primary title text reads exactly: \"ITC Khordha Safetyhub\" (English).",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-src-pages-loginpage-tsx-to-use-the-uploaded-fs-line-food-processing-plant-photo-instead-of-the-current-assets-generated-kaizen-dashboard-illustration-dim-1200x600-png",
+      "title": "Update `frontend/src/pages/LoginPage.tsx` to use the uploaded FS line food-processing plant photo instead of the current `/assets/generated/kaizen-dashboard-illustration.dim_1200x600.png`.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-deployed-frontend-uses-the-exact-itc-logo-image-the-user-provided-by-placing-replacing-the-static-asset-at-frontend-public-assets-generated-itc-limited-logo-dim-512x512-png-and-verifying-that-the-rendered-logo-matches-that-file-not-an-older-cached-or-different-image",
+      "title": "Ensure the deployed frontend uses the exact ITC logo image the user provided by placing/replacing the static asset at `frontend/public/assets/generated/itc-limited-logo.dim_512x512.png` and verifying that the rendered logo matches that file (not an older cached or different image).",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-authenticated-app-header-branding-to-use-the-same-itc-logo-asset-as-the-login-page-by-replacing-the-current-header-logo-reference-assets-generated-kaizen-logo-dim-512x512-png-with-assets-generated-itc-limited-logo-dim-512x512-png-in-frontend-src-components-layout-appheader-tsx",
+      "title": "Update the authenticated app header branding to use the same ITC logo asset as the login page by replacing the current header logo reference (`/assets/generated/kaizen-logo.dim_512x512.png`) with `/assets/generated/itc-limited-logo.dim_512x512.png` in `frontend/src/components/layout/AppHeader.tsx`.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-move-the-download-csv-export-button-on-the-manager-inactivity-dashboard-to-a-more-prominent-location-place-it-in-the-page-header-row-next-to-the-inactivity-dashboard-title-description-area-aligned-to-the-right-instead-of-inside-the-inactive-operators-card-header-the-button-must-remain-visible-only-when-there-is-at-least-one-inactive-operator-to-export-and-it-must-continue-to-export-the-same-csv-content-and-filename-format-currently-used",
+      "title": "Move the \"Download CSV\" export button on the manager Inactivity Dashboard to a more prominent location: place it in the page header row next to the \"Inactivity Dashboard\" title/description area, aligned to the right, instead of inside the \"Inactive Operators\" card header. The button must remain visible only when there is at least one inactive operator to export, and it must continue to export the same CSV content and filename format currently used.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -158,6 +299,32 @@
       "reqIds": [
         "REQ-11"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Provide distinct Operator vs Manager login options/entry points (two login options) in the login flow/UI",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Manager notifications + approve/reject workflow for operator-submitted Kaizen, hazards, and SUSAs, with status/decision visible to operators after manager action",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Extend the Observation data model and backend APIs so that manager approvals/rejections are supported for operator-submitted Observations (Q SUSA, Q Hazards, Safety Hazards), including storing the decision outcome and a required manager comment/reason.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Move/reposition the Export button on the manager dashboard to a different location (per user preference)",
+      "reqIds": [],
       "status": "pending"
     }
   ],

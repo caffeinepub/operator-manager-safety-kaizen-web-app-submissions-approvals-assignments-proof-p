@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-create-a-new-manager-page-that-provides-a-simple-single-screen-overview-of-operator-activity-including-a-sortable-table-of-operators-with-last-activity-time-and-a-derived-days-inactive-value-plus-an-inactivity-threshold-control-that-highlights-operators-as-active-vs-inactive",
-      "featureTitle": "Create a new manager page that provides a simple, single-screen overview of operator activity, including a sortable table of operators with last activity time and a derived 'days inactive' value, plus an inactivity threshold control that highlights operators as Active vs Inactive.",
+      "featureId": "feature-move-the-download-csv-export-button-on-the-manager-inactivity-dashboard-to-a-more-prominent-location-place-it-in-the-page-header-row-next-to-the-inactivity-dashboard-title-description-area-aligned-to-the-right-instead-of-inside-the-inactive-operators-card-header-the-button-must-remain-visible-only-when-there-is-at-least-one-inactive-operator-to-export-and-it-must-continue-to-export-the-same-csv-content-and-filename-format-currently-used",
+      "featureTitle": "Move the \"Download CSV\" export button on the manager Inactivity Dashboard to a more prominent location: place it in the page header row next to the \"Inactivity Dashboard\" title/description area, aligned to the right, instead of inside the \"Inactive Operators\" card header. The button must remain visible only when there is at least one inactive operator to export, and it must continue to export the same CSV content and filename format currently used.",
       "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/manager/OperatorActivityPage.tsx"
+        "frontend/src/pages/manager/InactivityDashboardPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,28 +17,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-12"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-navigation-and-routing-for-the-new-manager-operator-activity-overview-page-so-managers-can-access-it-from-the-header-manager-section",
-      "featureTitle": "Add navigation and routing for the new manager operator-activity overview page so managers can access it from the header manager section.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/layout/AppHeader.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-13"
+        "REQ-31"
       ],
       "confidence": "high"
     }

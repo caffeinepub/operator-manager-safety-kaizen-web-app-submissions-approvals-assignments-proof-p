@@ -1,65 +1,22 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T16:37:34.191Z",
-  "summary": "Frontend adds a new manager Operator Activity page, routing, and a nav link. A new React Query hook is referenced for fetching operator activity. Backend changes clearly add new types for operator profile activity, but the diff excerpt does not show the required new admin-only query implementation (including sorting and authorization). Several unrelated frontend changes appear (including changes to an explicitly-immutable path).",
-  "missing_requirements": [
-    {
-      "id": "REQ-11",
-      "requirement": "Add a manager/admin-only backend query that returns a complete operator activity list (all principals in operatorActivity), sorted by lastActivity (most recent first), and includes optional profile name/role from userProfiles; non-admin callers must be rejected consistently with existing admin-only methods.",
-      "reason": "backend/main.mo shows new public types (OperatorProfileActivity) but the diff excerpt does not include any new query function implementing the required behavior (admin-only guard, collecting all operatorActivity entries, joining userProfiles, sorting most-recent-first).",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-12",
-      "requirement": "Empty/loading states are handled (loading indicator while fetching; clear empty state text if there is no activity data).",
-      "reason": "OperatorActivityPage.tsx is truncated and the visible portion does not show explicit loading UI or an empty-state message. The file does define isLoading/isFetching but the actual rendered loading/empty UI is not present in the provided excerpt.",
-      "evidence": [
-        "frontend/src/pages/manager/OperatorActivityPage.tsx"
-      ]
-    },
-    {
-      "id": "REQ-12",
-      "requirement": "Refreshes when the user changes the threshold and clicks an update/refetch control.",
-      "reason": "The page defines thresholdDays state and destructures refetch, but the truncated excerpt does not show a UI control wired to call refetch after the threshold is changed (e.g., an Update/Refresh button).",
-      "evidence": [
-        "frontend/src/pages/manager/OperatorActivityPage.tsx"
-      ]
-    }
-  ],
+  "generatedAt": "2026-02-14T17:35:17.105Z",
+  "summary": "REQ-31 appears implemented: the \"Download CSV\" button is now rendered in the page header row (right-aligned via flex justify-between) and is conditionally shown only when inactiveOperators.length > 0; the \"Inactive Operators\" card header no longer contains the button. CSV columns and filename format are consistent with the acceptance criteria based on the shown code, but additional error-handling logic was added that may alter CSV output in error cases.",
+  "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Modified an explicitly-immutable frontend path (frontend/src/main.tsx), which is disallowed by the BuildRequest constraints.",
-      "reason": "The BuildRequest constraints explicitly say not to modify frontend/src/main.tsx, but the diff summary indicates it was changed (CSS import path correction).",
+      "description": "Added error-handling/defensive logic in CSV data generation (try/catch, console.error, and fallback CSV row values like 'Last Activity': 'Error'), which is beyond pure UI relocation and could affect exported CSV content in some cases.",
+      "reason": "BuildRequest explicitly says no changes to backend APIs or CSV generation logic beyond the UI relocation; this adds new generation behavior for error cases.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/main.tsx summary indicates it was modified)"
-      ]
-    },
-    {
-      "description": "Introduced/changed global styling/theme tokens (frontend/src/index.css) unrelated to the requested manager operator-activity overview dashboard.",
-      "reason": "The BuildRequest did not request design token or global stylesheet changes; the diff summary includes a modified index.css with new OKLCH tokens and an industrial blue scheme.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/index.css summary indicates it was modified)"
-      ]
-    },
-    {
-      "description": "Added additional React Query hooks beyond the requested new hook for the operator activity list (e.g., useGetUserProfile for looking up any user's profile).",
-      "reason": "REQ-12 only calls for adding a new hook in frontend/src/hooks/useQueries.ts to fetch the new backend activity list query; the diff summary claims additional hooks were added/changed beyond that scope.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/hooks/useQueries.ts summary mentions additional hooks including useGetUserProfile)"
+        "frontend/src/pages/manager/InactivityDashboardPage.tsx"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.74,
   "changed_files": [
-    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/layout/AppHeader.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/manager/OperatorActivityPage.tsx",
+    "frontend/src/pages/manager/InactivityDashboardPage.tsx",
     "project_state.json"
   ]
 }

@@ -13,7 +13,6 @@ interface KaizenDecisionPanelProps {
 
 export default function KaizenDecisionPanel({ kaizenId }: KaizenDecisionPanelProps) {
   const [comment, setComment] = useState('');
-  const [action, setAction] = useState<'approve' | 'reject' | null>(null);
   const approveKaizen = useApproveKaizen();
   const rejectKaizen = useRejectKaizen();
 
@@ -27,7 +26,6 @@ export default function KaizenDecisionPanel({ kaizenId }: KaizenDecisionPanelPro
       await approveKaizen.mutateAsync({ kaizenId, comment: comment.trim() });
       toast.success('Kaizen approved successfully');
       setComment('');
-      setAction(null);
     } catch (error: any) {
       toast.error(error.message || 'Failed to approve Kaizen');
     }
@@ -43,7 +41,6 @@ export default function KaizenDecisionPanel({ kaizenId }: KaizenDecisionPanelPro
       await rejectKaizen.mutateAsync({ kaizenId, reason: comment.trim() });
       toast.success('Kaizen rejected');
       setComment('');
-      setAction(null);
     } catch (error: any) {
       toast.error(error.message || 'Failed to reject Kaizen');
     }

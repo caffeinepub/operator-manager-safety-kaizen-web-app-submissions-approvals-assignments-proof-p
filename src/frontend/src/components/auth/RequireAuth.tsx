@@ -1,17 +1,8 @@
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
-import { useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
 import LoginPage from '../../pages/LoginPage';
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const { identity, isInitializing } = useInternetIdentity();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isInitializing && !identity) {
-      navigate({ to: '/login' });
-    }
-  }, [identity, isInitializing, navigate]);
 
   if (isInitializing) {
     return (

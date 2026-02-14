@@ -16,20 +16,41 @@ export default function InactivityDashboardPage() {
   const { data: inactiveOperators = [], isLoading, refetch } = useGetInactiveOperators(days);
 
   const handleDownloadCSV = () => {
-    const csvData = inactiveOperators.map((op) => ({
-      Principal: op.operator.toString(),
-      'Last Activity': format(new Date(Number(op.lastActivity) / 1000000), 'yyyy-MM-dd HH:mm:ss'),
-      'Days Inactive': Math.floor((Date.now() - Number(op.lastActivity) / 1000000) / (1000 * 60 * 60 * 24)),
-    }));
+    const csvData = inactiveOperators.map((op) => {
+      try {
+        const timestampMs = Number(op.lastActivity / BigInt(1_000_000));
+        const daysInactive = Math.floor((Date.now() - timestampMs) / (1000 * 60 * 60 * 24));
+        return {
+          Principal: op.operator.toString(),
+          'Last Activity': format(new Date(timestampMs), 'yyyy-MM-dd HH:mm:ss'),
+          'Days Inactive': daysInactive,
+        };
+      } catch (error) {
+        console.error('Error processing operator data:', error);
+        return {
+          Principal: op.operator.toString(),
+          'Last Activity': 'Error',
+          'Days Inactive': 0,
+        };
+      }
+    });
     downloadCSV(csvData, `inactive-operators-${days}days-${format(new Date(), 'yyyy-MM-dd')}.csv`);
   };
 
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Inactivity Dashboard</h1>
-          <p className="text-muted-foreground">Monitor operator activity and identify inactive users</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Inactivity Dashboard</h1>
+            <p className="text-muted-foreground">Monitor operator activity and identify inactive users</p>
+          </div>
+          {inactiveOperators.length > 0 && (
+            <Button onClick={handleDownloadCSV} variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Download CSV
+            </Button>
+          )}
         </div>
 
         <Card>
@@ -55,19 +76,11 @@ export default function InactivityDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Inactive Operators</CardTitle>
-              <CardDescription>
-                {inactiveOperators.length} operator(s) inactive for {days}+ days
-              </CardDescription>
-            </div>
-            {inactiveOperators.length > 0 && (
-              <Button onClick={handleDownloadCSV} variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Download CSV
-              </Button>
-            )}
+          <CardHeader>
+            <CardTitle>Inactive Operators</CardTitle>
+            <CardDescription>
+              {inactiveOperators.length} operator(s) inactive for {days}+ days
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -89,19 +102,32 @@ export default function InactivityDashboardPage() {
                 </TableHeader>
                 <TableBody>
                   {inactiveOperators.map((op) => {
-                    const daysInactive = Math.floor(
-                      (Date.now() - Number(op.lastActivity) / 1000000) / (1000 * 60 * 60 * 24)
-                    );
-                    return (
-                      <TableRow key={op.operator.toString()}>
-                        <TableCell className="font-mono text-xs">{op.operator.toString().slice(0, 30)}...</TableCell>
-                        <TableCell>{format(new Date(Number(op.lastActivity) / 1000000), 'MMM d, yyyy h:mm a')}</TableCell>
-                        <TableCell>{daysInactive}</TableCell>
-                        <TableCell>
-                          <Badge variant="destructive">Inactive</Badge>
-                        </TableCell>
-                      </TableRow>
-                    );
+                    try {
+                      const timestampMs = Number(op.lastActivity / BigInt(1_000_000));
+                      const daysInactive = Math.floor((Date.now() - timestampMs) / (1000 * 60 * 60 * 24));
+                      return (
+                        <TableRow key={op.operator.toString()}>
+                          <TableCell className="font-mono text-xs">{op.operator.toString().slice(0, 30)}...</TableCell>
+                          <TableCell>{format(new Date(timestampMs), 'MMM d, yyyy h:mm a')}</TableCell>
+                          <TableCell>{daysInactive}</TableCell>
+                          <TableCell>
+                            <Badge variant="destructive">Inactive</Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    } catch (error) {
+                      console.error('Error rendering operator row:', error);
+                      return (
+                        <TableRow key={op.operator.toString()}>
+                          <TableCell className="font-mono text-xs">{op.operator.toString().slice(0, 30)}...</TableCell>
+                          <TableCell>Error</TableCell>
+                          <TableCell>-</TableCell>
+                          <TableCell>
+                            <Badge variant="destructive">Inactive</Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }
                   })}
                 </TableBody>
               </Table>

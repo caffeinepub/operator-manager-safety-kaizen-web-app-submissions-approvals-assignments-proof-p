@@ -1,6 +1,6 @@
 import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/react-router';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
-import { useGetCallerUserProfile, useIsCallerAdmin } from './hooks/useCurrentUser';
+import { useGetCallerUserProfile } from './hooks/useCurrentUser';
 import { useActivityHeartbeat } from './hooks/useActivityHeartbeat';
 import ProfileSetupDialog from './components/profile/ProfileSetupDialog';
 import AppHeader from './components/layout/AppHeader';

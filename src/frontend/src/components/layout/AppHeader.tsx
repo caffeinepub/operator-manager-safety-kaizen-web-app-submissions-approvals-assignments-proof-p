@@ -89,7 +89,11 @@ export default function AppHeader() {
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
-            <img src="/assets/generated/kaizen-logo.dim_512x512.png" alt="Logo" className="h-10 w-10" />
+            <img 
+              src="/assets/generated/itc-limited-logo.dim_512x512.png" 
+              alt="ITC Limited Logo" 
+              className="h-10 w-10 object-contain" 
+            />
             <div>
               <h1 className="text-lg font-bold leading-tight">SafetyHub</h1>
               <p className="text-xs text-muted-foreground">Continuous Improvement</p>

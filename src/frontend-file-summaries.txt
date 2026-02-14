@@ -1,8 +1,13 @@
 {
   "frontend/src/main.tsx": "Application entry point that sets up React Query and Internet Identity providers, with corrected CSS import path from ./index.css.",
   "frontend/src/index.css": "Global stylesheet with Tailwind directives and OKLCH-based design tokens for light and dark themes with industrial blue color scheme.",
-  "frontend/src/pages/manager/OperatorActivityPage.tsx": "Manager-only page displaying a sortable table of all operator activity with configurable inactivity threshold, status badges, and summary statistics cards.",
+  "frontend/src/pages/manager/OperatorActivityPage.tsx": "Manager-only page displaying a sortable table of all operator activity with configurable inactivity threshold, status badges, summary statistics cards, and hardened BigInt time calculations.",
   "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including observations, kaizens, photos, activity tracking, user profiles (including useGetUserProfile for looking up any user's profile), and the getAllOperatorActivity query for the manager dashboard.",
-  "frontend/src/App.tsx": "Main application component with TanStack Router configuration, route definitions for all pages including the new /manager/activity route, and authentication/authorization guards.",
-  "frontend/src/components/layout/AppHeader.tsx": "Application header with navigation menu, user profile display, and logout functionality; includes new \"Operator Activity\" link in the manager section."
+  "frontend/src/App.tsx": "Main application component with TanStack Router configuration, route definitions for all pages including manager routes, and authentication/authorization guards with ThemeProvider wrapper.",
+  "frontend/src/components/layout/AppHeader.tsx": "Application header with navigation menu, user profile display, and logout functionality; now displays the ITC Limited logo with proper aspect ratio handling using object-contain.",
+  "frontend/src/components/kaizen/KaizenDecisionPanel.tsx": "Manager-only component for approving or rejecting Kaizen suggestions with comment/reason input and validation.",
+  "frontend/src/pages/manager/InactivityDashboardPage.tsx": "Manager dashboard for monitoring inactive operators with configurable threshold, CSV export button now positioned in the page header (aligned right), and error-safe BigInt time conversions.",
+  "frontend/src/utils/loginSelection.ts": "Session storage helper for persisting and retrieving login intent (operator or manager) across page refreshes during authentication flow.",
+  "frontend/src/pages/LoginPage.tsx": "Login page with ITC Limited branding, displaying the ITC logo with object-contain for proper aspect ratio, \"ITC Khordha Safetyhub\" title, and FS line processing photo, with two distinct sign-in options for Operator and Manager roles.",
+  "frontend/src/components/auth/RequireAuth.tsx": "Authentication guard component that renders LoginPage for unauthenticated users or shows protected content for authenticated users, with loading state during initialization."
 }
