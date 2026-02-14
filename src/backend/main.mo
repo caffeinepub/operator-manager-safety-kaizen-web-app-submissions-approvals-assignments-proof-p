@@ -11,9 +11,9 @@ import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -203,12 +203,39 @@ actor {
     };
   };
 
+  // Helper function to validate authorization token
+  func validateAdminToken(token : AuthorizationToken) {
+    if (not token.isAdmin) {
+      Runtime.trap("Unauthorized: Only admins can perform this action");
+    };
+
+    // Verify the token corresponds to a real admin credential
+    switch (credentials.get(token.loginId)) {
+      case (null) {
+        Runtime.trap("Unauthorized: Invalid authorization token");
+      };
+      case (?cred) {
+        if (cred.role != #admin) {
+          Runtime.trap("Unauthorized: Token does not correspond to admin credential");
+        };
+        if (not cred.enabled) {
+          Runtime.trap("Unauthorized: Admin credential is disabled");
+        };
+      };
+    };
+  };
+
+  // =========== NEW LIST CREDENTIALS CALL ===============
+  public query ({ caller }) func listCredentials(token : AuthorizationToken) : async [Credential] {
+    checkMaintenanceMode(caller);
+    validateAdminToken(token);
+    credentials.values().toArray();
+  };
+
   // Credential CRUD functions (Admin-only)
   public shared ({ caller }) func createCredentialWithToken(token : AuthorizationToken, loginId : LoginId, password : HashedPassword, role : Role, enabled : Bool) : async () {
     checkMaintenanceMode(caller);
-    if (not token.isAdmin) {
-      Runtime.trap("Unauthorized: Only admins can create credentials");
-    };
+    validateAdminToken(token);
     switch (credentials.get(loginId)) {
       case (null) {
         let newCredential : Credential = {
@@ -227,9 +254,7 @@ actor {
 
   public shared ({ caller }) func resetPasswordWithToken(token : AuthorizationToken, loginId : LoginId, newPassword : HashedPassword) : async () {
     checkMaintenanceMode(caller);
-    if (not token.isAdmin) {
-      Runtime.trap("Unauthorized: Only admins can reset passwords");
-    };
+    validateAdminToken(token);
     switch (credentials.get(loginId)) {
       case (null) {
         Runtime.trap("Credential does not exist");
@@ -242,9 +267,7 @@ actor {
 
   public shared ({ caller }) func setCredentialStatusWithToken(token : AuthorizationToken, loginId : LoginId, enabled : Bool) : async () {
     checkMaintenanceMode(caller);
-    if (not token.isAdmin) {
-      Runtime.trap("Unauthorized: Only admins can set credential status");
-    };
+    validateAdminToken(token);
     switch (credentials.get(loginId)) {
       case (null) {
         Runtime.trap("Credential does not exist");

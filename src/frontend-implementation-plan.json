@@ -1,22 +1,27 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Prefill Admin Authorization default credentials (admin / 1234)",
+  "title": "Restore always-visible Log out button on Manager/Operator profile pages",
   "requirements": [
     {
-      "id": "REQ-65",
-      "summary": "Prefill the Admin Authorization form with default credentials (admin / 1234) on initial page load while keeping both fields editable.",
+      "id": "REQ-78",
+      "summary": "Make the Manager and Operator profile pages always show a clearly visible Log out button that uses centralized logout logic and reliably returns users to /login on all screen sizes.",
       "acceptanceCriteria": [
-        "When visiting the Admin Credentials Management page and the \"Admin Authorization Required\" form is shown, the \"Admin Login ID\" input is pre-populated with \"admin\".",
-        "When visiting the Admin Credentials Management page and the \"Admin Authorization Required\" form is shown, the \"Password\" input is pre-populated with \"1234\" (masked as a password field).",
-        "The user can overwrite either prefilled value and submit the form normally.",
-        "All user-facing text remains in English."
+        "When navigating to /manager/profile (as a Manager/Admin), a clearly visible \"Log out\" button is present on the page without relying on the header dropdown.",
+        "When navigating to /operator/profile (as an authenticated Operator), a clearly visible \"Log out\" button is present on the page without relying on the header dropdown.",
+        "Clicking the profile page \"Log out\" button clears the credential session (and any admin token state), clears the React Query cache, and navigates to /login.",
+        "The \"Log out\" button remains visible and usable on both desktop and mobile layouts (no hidden/overflowed button in narrow widths)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/admin/CredentialManagementPage.tsx",
+          "path": "frontend/src/pages/manager/ManagerProfilePage.tsx",
           "operation": "modify",
-          "description": "Update the initial state for the Admin Authorization form inputs so that, on first render, \"Admin Login ID\" is prefilled with \"admin\" and \"Password\" is prefilled with \"1234\" while preserving normal onChange behavior so users can edit either field before submitting. Ensure the password field remains type=\"password\" and do not change any user-facing text."
+          "description": "Adjust the profile header layout to be responsive (e.g., allow wrapping/stacking actions on narrow widths and/or make actions full-width on mobile) so the \"Log out\" button is always visible and not overflow-hidden. Ensure the button continues to call the centralized useAppLogout().logout (no duplicated logout logic)."
+        },
+        {
+          "path": "frontend/src/pages/operator/OperatorProfilePage.tsx",
+          "operation": "modify",
+          "description": "Adjust the profile header layout to be responsive (e.g., allow wrapping/stacking actions on narrow widths and/or make actions full-width on mobile) so the \"Log out\" button is always visible and not overflow-hidden. Ensure the button continues to call the centralized useAppLogout().logout (no duplicated logout logic)."
         }
       ]
     }

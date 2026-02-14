@@ -51,6 +51,12 @@ export interface Kaizen {
     benefit: string;
     problemStatement: string;
 }
+export interface Credential {
+    id: LoginId;
+    password: HashedPassword;
+    role: Role;
+    enabled: boolean;
+}
 export interface OperatorActivity {
     operator: Principal;
     lastActivity: Time;
@@ -109,6 +115,7 @@ export interface backendInterface {
     getPhotosForKaizen(kaizenId: string): Promise<Array<Photo>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    listCredentials(token: AuthorizationToken): Promise<Array<Credential>>;
     pingActivity(): Promise<void>;
     rejectKaizen(kaizenId: string, reason: string): Promise<void>;
     resetPasswordWithToken(token: AuthorizationToken, loginId: LoginId, newPassword: HashedPassword): Promise<void>;

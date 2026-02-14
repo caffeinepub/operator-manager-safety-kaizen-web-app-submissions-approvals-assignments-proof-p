@@ -4,11 +4,13 @@ export function mapCredentialError(error: any): string {
   let errorMessage = error?.message || String(error);
   
   // Strip common canister trap prefixes to get the actual error message
-  // Examples: "Canister trapped: ...", "Call was rejected: ...", etc.
+  // Examples: "Canister trapped: ...", "Call was rejected: ...", "Canister trapped explicitly: ...", etc.
   errorMessage = errorMessage
+    .replace(/^Canister trapped explicitly:\s*/i, '')
     .replace(/^Canister trapped:\s*/i, '')
     .replace(/^Call was rejected:\s*/i, '')
     .replace(/^Error:\s*/i, '')
+    .replace(/^Reject text:\s*/i, '')
     .trim();
   
   // Check for disabled credential

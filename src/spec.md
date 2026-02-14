@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Default admin authorization credentials to admin / 1234 on both the Admin Authorization form and fresh backend installs.
+**Goal:** Restore a clearly visible, reliable “Log out” button on the Manager Profile and Operator Profile pages that signs the user out and returns them to `/login`.
 
 **Planned changes:**
-- Frontend: Prefill the “Admin Login ID” field with `admin` and the “Password” field with `1234` when the Admin Authorization Required form first loads, while keeping both fields editable before submit.
-- Backend: Update the default seeded admin credential on an empty credential store to use login `admin` with password `1234`.
-- Backend: Ensure the admin authorization endpoint also triggers the same default seeding behavior when called first on a fresh install (without overwriting existing stored credentials).
+- Add an always-visible “Log out” button to `/manager/profile` and `/operator/profile` pages (not dependent on any header dropdown).
+- Wire both buttons to the existing centralized logout logic (`frontend/src/hooks/useAppLogout.ts`) so logout clears session/admin token state, clears React Query cache, and navigates to `/login`.
+- Adjust profile page layout as needed to keep the button visible and usable on desktop and mobile (avoid hidden/overflow in narrow widths).
 
-**User-visible outcome:** When the admin authorization form appears it is pre-populated with admin/1234 (editable), and on a fresh install admin actions can be authorized using admin/1234 even if admin authorization is the first credential-related call.
+**User-visible outcome:** Managers/Admins and Operators can always see and click “Log out” directly on their profile pages, which signs them out and returns them to the login screen.

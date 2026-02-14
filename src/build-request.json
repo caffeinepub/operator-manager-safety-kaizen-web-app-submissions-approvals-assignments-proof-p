@@ -1,85 +1,39 @@
 {
   "kind": "build_request",
-  "title": "Set Admin Authorization default credentials to admin / 1234",
+  "title": "Fix missing Log out button in Manager and Operator profile pages",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-65",
-      "text": "Update the Admin Authorization form to prefill the Admin Login ID as \"admin\" and the Password as \"1234\" when the page first loads, while still allowing the user to edit both fields before submitting.",
+      "id": "REQ-78",
+      "text": "Ensure the Manager Profile and Operator Profile pages always show a clearly visible \"Log out\" button and that it successfully signs the user out and returns them to the /login page.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-1"
+          "msg-5"
         ],
         "quotes": [
-          "In admin authorisation page set the admin user id as admin and password as 1234"
+          "Yes working but the log out button is not there in manager and operator profile"
         ]
       },
       "acceptanceCriteria": [
-        "When visiting the Admin Credentials Management page and the \"Admin Authorization Required\" form is shown, the \"Admin Login ID\" input is pre-populated with \"admin\".",
-        "When visiting the Admin Credentials Management page and the \"Admin Authorization Required\" form is shown, the \"Password\" input is pre-populated with \"1234\" (masked as a password field).",
-        "The user can overwrite either prefilled value and submit the form normally.",
-        "All user-facing text remains in English."
-      ]
-    },
-    {
-      "id": "REQ-66",
-      "text": "Change the backend’s default seeded Admin credential password to \"1234\" (Login ID remains \"admin\"), so that a fresh installation can authorize admin actions using admin/1234.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-1"
-        ],
-        "quotes": [
-          "In admin authorisation page set the admin user id as admin and password as 1234"
-        ]
-      },
-      "acceptanceCriteria": [
-        "On a fresh install (credential store empty), the system seeds a default Admin credential with Login ID \"admin\" and password \"1234\" (only when the credential store is empty).",
-        "Admin authorization succeeds when using Login ID \"admin\" and password \"1234\".",
-        "No migration is introduced unless it is strictly required to preserve existing canister state."
-      ]
-    },
-    {
-      "id": "REQ-67",
-      "text": "Ensure the backend Admin Authorization endpoint can successfully authorize on a fresh install even if it is called before any other credential-validation endpoint, by applying the same default-admin seeding behavior when the credential store is empty.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-1"
-        ],
-        "quotes": [
-          "In admin authorisation page set the admin user id as admin and password as 1234"
-        ]
-      },
-      "acceptanceCriteria": [
-        "On a fresh install, calling the admin authorization API first (before any login validation call) still succeeds with admin/1234.",
-        "If credentials already exist, the backend does not overwrite or reset existing credentials during admin authorization."
+        "When navigating to /manager/profile (as a Manager/Admin), a clearly visible \"Log out\" button is present on the page without relying on the header dropdown.",
+        "When navigating to /operator/profile (as an authenticated Operator), a clearly visible \"Log out\" button is present on the page without relying on the header dropdown.",
+        "Clicking the profile page \"Log out\" button clears the credential session (and any admin token state), clears the React Query cache, and navigates to /login.",
+        "The \"Log out\" button remains visible and usable on both desktop and mobile layouts (no hidden/overflowed button in narrow widths)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor; keep all Motoko logic in backend/main.mo.",
-    "Do not edit any frontend files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files under frontend/src/components/ui.",
-    "Use English for any user-facing text."
+    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or anything in frontend/src/components/ui (immutable paths).",
+    "Keep logout behavior centralized via the existing frontend/src/hooks/useAppLogout.ts logic (no duplicate logout implementations)."
   ],
   "nonGoals": [
-    "Do not implement or change Internet Identity authentication behavior.",
-    "Do not redesign the Admin Authorization UI beyond prefilling the requested default values.",
-    "Do not change role/permission rules or add new roles."
+    "Changing authentication mechanisms or role logic.",
+    "Adding new profile fields or changing profile data models.",
+    "Backend changes or migrations."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

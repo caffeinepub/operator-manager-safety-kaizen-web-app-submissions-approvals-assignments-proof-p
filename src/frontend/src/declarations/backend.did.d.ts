@@ -11,6 +11,12 @@ import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
 export interface AuthorizationToken { 'loginId' : LoginId, 'isAdmin' : boolean }
+export interface Credential {
+  'id' : LoginId,
+  'password' : HashedPassword,
+  'role' : Role,
+  'enabled' : boolean,
+}
 export type ExternalBlob = Uint8Array;
 export type HashedPassword = string;
 export interface Kaizen {
@@ -124,6 +130,7 @@ export interface _SERVICE {
   'getPhotosForKaizen' : ActorMethod<[string], Array<Photo>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'listCredentials' : ActorMethod<[AuthorizationToken], Array<Credential>>,
   'pingActivity' : ActorMethod<[], undefined>,
   'rejectKaizen' : ActorMethod<[string, string], undefined>,
   'resetPasswordWithToken' : ActorMethod<

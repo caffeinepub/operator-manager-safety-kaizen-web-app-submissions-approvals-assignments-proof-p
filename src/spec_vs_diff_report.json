@@ -1,43 +1,42 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T20:00:09.264Z",
-  "summary": "Frontend now initializes the Admin Authorization form state with default values admin/1234, but backend changes introduce a new migration module and only show default seeding in validateCredentials; the diff does not provide evidence that the admin-authorization endpoint itself seeds defaults on first call, and the added migration contradicts the “no migration unless strictly required” constraint/AC.",
+  "generatedAt": "2026-02-14T20:54:31.779Z",
+  "summary": "Manager and Operator profile pages were updated to include a prominent, page-level “Log out” button wired to the centralized `useAppLogout().logout` handler and styled to remain visible on mobile/desktop. However, the diff does not provide evidence that the logout action clears credential/admin-token state, clears the React Query cache, and navigates to `/login` (those behaviors are inside `useAppLogout`, which is not shown/changed here).",
   "missing_requirements": [
     {
-      "id": "REQ-67",
-      "requirement": "Ensure the backend Admin Authorization endpoint can successfully authorize on a fresh install even if it is called before any other credential-validation endpoint, by applying the same default-admin seeding behavior when the credential store is empty.",
-      "reason": "The diff shows default-admin seeding added inside validateCredentials, but does not show any corresponding seeding logic in the admin authorization API/endpoint itself. Without evidence of changes to the admin authorization function, REQ-67 is not confirmed implemented.",
+      "id": "REQ-78",
+      "requirement": "Clicking the profile page \"Log out\" button clears the credential session (and any admin token state), clears the React Query cache, and navigates to /login.",
+      "reason": "The profile pages call `logout` from `useAppLogout`, but the diff provides no evidence of what `logout` actually does (no changes or excerpts from `frontend/src/hooks/useAppLogout.ts`). Therefore the required side effects (clearing credential/admin token state, clearing React Query cache, redirecting to `/login`) cannot be verified from the provided diff summary alone.",
       "evidence": [
-        "backend/main.mo (only shows seeding inside validateCredentials; admin authorization endpoint not shown in diff)"
-      ]
-    },
-    {
-      "id": "REQ-66",
-      "requirement": "No migration is introduced unless it is strictly required to preserve existing canister state.",
-      "reason": "A new migration module was added and wired into the actor via `(with migration = Migration.run)`, which is a migration introduction. The diff provides no evidence that this migration is strictly required to preserve existing canister state.",
-      "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo (imports Migration and uses `(with migration = Migration.run)`)"
+        "frontend/src/pages/manager/ManagerProfilePage.tsx",
+        "frontend/src/pages/operator/OperatorProfilePage.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Introduced a backend migration system/module (backend/migration.mo) and wired it into the canister actor.",
-      "reason": "The BuildRequest did not ask for adding a migration system; it explicitly constrained keeping Motoko logic in backend/main.mo and stated no migration unless strictly required. Adding a new migration file and enabling it is extra/unrequested behavior per the request scope.",
+      "description": "Added/implemented a \"Back\" button with `useGoBackOrDashboard` navigation on both Manager and Operator profile pages.",
+      "reason": "REQ-78 only requests a clearly visible \"Log out\" button on the profile pages; it does not request adding a back-navigation control.",
       "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo (import Migration; `(with migration = Migration.run)`)"
+        "frontend/src/pages/manager/ManagerProfilePage.tsx",
+        "frontend/src/pages/operator/OperatorProfilePage.tsx"
+      ]
+    },
+    {
+      "description": "Added/implemented additional profile UI content (role label with icon and optional Login ID display).",
+      "reason": "REQ-78 is specifically about ensuring a visible, working logout button; it does not request adding/changing profile fields or displays (and non-goals explicitly mention not adding new profile fields).",
+      "evidence": [
+        "frontend/src/pages/manager/ManagerProfilePage.tsx",
+        "frontend/src/pages/operator/OperatorProfilePage.tsx"
       ]
     }
   ],
-  "confidence": 0.72,
+  "confidence": 0.62,
   "changed_files": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/pages/admin/CredentialManagementPage.tsx",
+    "frontend/src/pages/manager/ManagerProfilePage.tsx",
+    "frontend/src/pages/operator/OperatorProfilePage.tsx",
     "project_state.json"
   ]
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 39,
+  "projectStateVersion": 47,
   "summary": "User requests removing Internet Identity login entirely and replacing it with a simple username/login ID + password authentication system, with an Admin section to manage Operator/Manager login IDs and passwords.",
   "architectural_notes": [
     "User requested an alternative authentication approach: an Admin-managed userID/password login and credential management page for Operators/Managers (in addition to or instead of Internet Identity).",
@@ -20,7 +20,8 @@
     "Admin panel/entry point is missing from the login screen; user requests adding it and setting default admin/pass credentials.",
     "User reports the Admin/password-based login is not accepting the password (\"password is not taking\").",
     "Admin is unable to create new login IDs even when logged in as Admin (backend/UI reports 'only admin can create IDs' incorrectly).",
-    "After logging into the Admin profile with username/password, the app prompts again on the Admin Authorization page for a second password entry (double authorization prompt)."
+    "After logging into the Admin profile with username/password, the app prompts again on the Admin Authorization page for a second password entry (double authorization prompt).",
+    "After re-login to the Admin profile, previously created user IDs are not visible (credentials list not persisting or not being fetched/displayed)."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -439,6 +440,70 @@
         "REQ-65"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-clearly-visible-log-out-button-within-the-admin-portal-ui-admin-pages-in-addition-to-any-global-header-menu-logout-that-signs-the-user-out-and-returns-them-to-the-login-page",
+      "title": "Add a clearly visible “Log out” button within the Admin portal UI (Admin pages), in addition to any global header menu logout, that signs the user out and returns them to the /login page.",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-admin-portal-login-id-management-screen-so-that-previously-created-login-ids-persist-across-re-login-by-loading-the-credentials-list-from-the-backend-instead-of-using-a-local-mock-list",
+      "title": "Fix the Admin portal “Login ID Management” screen so that previously created Login IDs persist across re-login by loading the credentials list from the backend instead of using a local mock list.",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-react-query-credential-list-hook-to-call-the-new-backend-credentials-listing-api-and-use-it-in-the-admin-credentials-management-page-to-render-the-credentials-table",
+      "title": "Update the React Query credential-list hook to call the new backend credentials listing API and use it in the Admin Credentials Management page to render the credentials table.",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-manager-profile-screen-includes-a-clearly-visible-back-button-and-a-clearly-visible-log-out-button",
+      "title": "Ensure the Manager Profile screen includes a clearly visible \"Back\" button and a clearly visible \"Log out\" button.",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-operator-profile-screen-includes-a-clearly-visible-back-button-and-a-clearly-visible-log-out-button",
+      "title": "Ensure the Operator Profile screen includes a clearly visible \"Back\" button and a clearly visible \"Log out\" button.",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-harden-frontend-credential-input-handling-so-passwords-and-login-ids-are-validated-using-trimmed-values-leading-trailing-whitespace-removed-everywhere-they-are-entered-login-screen-and-admin-authorization-create-reset-forms",
+      "title": "Harden frontend credential input handling so passwords and Login IDs are validated using trimmed values (leading/trailing whitespace removed) everywhere they are entered (Login screen and Admin authorization / create / reset forms).",
+      "reqIds": [
+        "REQ-76"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-error-handling-for-login-admin-authorization-to-always-show-clear-english-messages-derived-from-backend-error-reasons-do-not-show-raw-traps-including-a-specific-disabled-account-message",
+      "title": "Update frontend error handling for login/admin authorization to always show clear English messages derived from backend error reasons (do not show raw traps), including a specific disabled-account message.",
+      "reqIds": [
+        "REQ-77"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-manager-profile-and-operator-profile-pages-always-show-a-clearly-visible-log-out-button-and-that-it-successfully-signs-the-user-out-and-returns-them-to-the-login-page",
+      "title": "Ensure the Manager Profile and Operator Profile pages always show a clearly visible \"Log out\" button and that it successfully signs the user out and returns them to the /login page.",
+      "reqIds": [
+        "REQ-78"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -667,6 +732,48 @@
       "summary": "Ensure the backend Admin Authorization endpoint can successfully authorize on a fresh install even if it is called before any other credential-validation endpoint, by applying the same default-admin seeding behavior when the credential store is empty.",
       "reqIds": [
         "REQ-67"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Add a Logout button in the Admin portal (Admin area)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Ensure Manager and Operator profiles show roles/responsibilities after login (role visibility in profile UI)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Implement a backend credentials listing method that is restricted by the existing admin authorization token flow used by create/reset/enable/disable credential APIs.",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Add Log out and Back buttons in both Manager and Operator Profile screens",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Fix backend credential storage so Login ID + Password authentication works consistently after redeploy/upgrade (credentials must not reset unexpectedly), including preserving any previously created Login IDs and their passwords.",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "Ensure backend password validation and admin-authorization behave correctly and return stable, user-safe error reasons for: invalid credentials, disabled Login ID, and selected role mismatch (Admin/Manager/Operator).",
+      "reqIds": [
+        "REQ-75"
       ],
       "status": "pending"
     }

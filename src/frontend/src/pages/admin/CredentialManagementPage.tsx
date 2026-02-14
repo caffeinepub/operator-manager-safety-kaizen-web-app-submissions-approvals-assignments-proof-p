@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { 
@@ -19,6 +19,7 @@ import {
   useResetCredential, 
   useDisableCredential, 
   useEnableCredential,
+  useListCredentials,
   setAdminToken,
   clearAdminToken
 } from '../../hooks/useQueries';
@@ -26,13 +27,7 @@ import { Role } from '../../backend';
 import { Key, UserPlus, RefreshCw, Ban, CheckCircle, AlertCircle, ShieldAlert, LogOut } from 'lucide-react';
 import { getCurrentLoginId, clearCredentialSession } from '../../utils/credentialSession';
 import { mapCredentialError } from '../../utils/loginSelection';
-
-// Mock credentials for display - in production this would come from backend
-interface DisplayCredential {
-  id: string;
-  role: Role;
-  enabled: boolean;
-}
+import { trimCredentialField, validateCredentials, validateCredentialField } from '../../utils/credentialInput';
 
 export default function CredentialManagementPage() {
   const navigate = useNavigate();
@@ -42,14 +37,11 @@ export default function CredentialManagementPage() {
   const resetCredential = useResetCredential();
   const disableCredential = useDisableCredential();
   const enableCredential = useEnableCredential();
+  const { data: credentials = [], refetch: refetchCredentials } = useListCredentials();
 
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [authLoginId, setAuthLoginId] = useState('admin');
   const [authPassword, setAuthPassword] = useState('1234');
-  
-  const [credentials, setCredentials] = useState<DisplayCredential[]>([
-    { id: 'admin', role: Role.admin, enabled: true }
-  ]);
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
@@ -68,15 +60,29 @@ export default function CredentialManagementPage() {
 
   const currentLoginId = getCurrentLoginId();
 
+  // Refetch credentials after successful authorization
+  useEffect(() => {
+    if (isAuthorized) {
+      refetchCredentials();
+    }
+  }, [isAuthorized, refetchCredentials]);
+
   const handleAuthorize = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
+    // Trim whitespace from inputs before submitting
+    const trimmedLoginId = trimCredentialField(authLoginId);
+    const trimmedPassword = trimCredentialField(authPassword);
+    
+    // Validate that fields are not empty or whitespace-only
+    const validationError = validateCredentials(authLoginId, authPassword);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    
     try {
-      // Trim whitespace from inputs before submitting
-      const trimmedLoginId = authLoginId.trim();
-      const trimmedPassword = authPassword.trim();
-      
       const token = await authorizeAdmin.mutateAsync({
         loginId: trimmedLoginId,
         password: trimmedPassword,
@@ -90,22 +96,37 @@ export default function CredentialManagementPage() {
     }
   };
 
+  const handleLogout = () => {
+    clearCredentialSession();
+    clearAdminToken();
+    queryClient.clear();
+    navigate({ to: '/login' });
+  };
+
   const handleCreateCredential = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     
+    // Trim inputs
+    const trimmedLoginId = trimCredentialField(newLoginId);
+    const trimmedPassword = trimCredentialField(newPassword);
+    
+    // Validate that fields are not empty or whitespace-only
+    const validationError = validateCredentials(newLoginId, newPassword);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    
     try {
       await createCredential.mutateAsync({
-        loginId: newLoginId,
-        password: newPassword,
+        loginId: trimmedLoginId,
+        password: trimmedPassword,
         role: newRole,
       });
       
-      // Add to local display list
-      setCredentials([...credentials, { id: newLoginId, role: newRole, enabled: true }]);
-      
-      setSuccess(`Login ID created successfully: ${newLoginId}`);
+      setSuccess(`Login ID created successfully: ${trimmedLoginId}`);
       setShowCreateDialog(false);
       setNewLoginId('');
       setNewPassword('');
@@ -120,10 +141,20 @@ export default function CredentialManagementPage() {
     setError('');
     setSuccess('');
     
+    // Trim password input
+    const trimmedPassword = trimCredentialField(resetPassword);
+    
+    // Validate that password is not empty or whitespace-only
+    const validationError = validateCredentialField(resetPassword, 'Password');
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    
     try {
       await resetCredential.mutateAsync({
         loginId: selectedLoginId,
-        newPassword: resetPassword,
+        newPassword: trimmedPassword,
       });
       
       setSuccess(`Password reset successfully for ${selectedLoginId}`);
@@ -145,10 +176,20 @@ export default function CredentialManagementPage() {
       return;
     }
     
+    // Trim password input
+    const trimmedPassword = trimCredentialField(myNewPassword);
+    
+    // Validate that password is not empty or whitespace-only
+    const validationError = validateCredentialField(myNewPassword, 'Password');
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    
     try {
       await resetCredential.mutateAsync({
         loginId: currentLoginId,
-        newPassword: myNewPassword,
+        newPassword: trimmedPassword,
       });
       
       setSuccess('Your password has been reset successfully');
@@ -165,12 +206,6 @@ export default function CredentialManagementPage() {
     
     try {
       await disableCredential.mutateAsync(loginId);
-      
-      // Update local display list
-      setCredentials(credentials.map(c => 
-        c.id === loginId ? { ...c, enabled: false } : c
-      ));
-      
       setSuccess(`Account disabled: ${loginId}`);
     } catch (err: any) {
       setError(err.message || 'Failed to disable account');
@@ -183,12 +218,6 @@ export default function CredentialManagementPage() {
     
     try {
       await enableCredential.mutateAsync(loginId);
-      
-      // Update local display list
-      setCredentials(credentials.map(c => 
-        c.id === loginId ? { ...c, enabled: true } : c
-      ));
-      
       setSuccess(`Account enabled: ${loginId}`);
     } catch (err: any) {
       setError(err.message || 'Failed to enable account');
@@ -217,20 +246,12 @@ export default function CredentialManagementPage() {
     try {
       await disableCredential.mutateAsync(currentLoginId);
       
-      // Update local display list
-      setCredentials(credentials.map(c => 
-        c.id === currentLoginId ? { ...c, enabled: false } : c
-      ));
-      
       setSuccess('Your account has been disabled. You will be logged out.');
       setShowDisableMyAccountDialog(false);
       
       // Sign out after a brief delay
       setTimeout(() => {
-        clearCredentialSession();
-        clearAdminToken();
-        queryClient.clear();
-        navigate({ to: '/login' });
+        handleLogout();
       }, 2000);
     } catch (err: any) {
       setError(err.message || 'Failed to disable your account');
@@ -336,22 +357,22 @@ export default function CredentialManagementPage() {
             </p>
           </div>
           
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <UserPlus className="h-4 w-4 mr-2" />
-                Create Login ID
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Login ID</DialogTitle>
-                <DialogDescription>
-                  Create a new Login ID and password for system access
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleCreateCredential}>
-                <div className="space-y-4 py-4">
+          <div className="flex gap-3">
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+              <DialogTrigger asChild>
+                <Button>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Create Login ID
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Login ID</DialogTitle>
+                  <DialogDescription>
+                    Create a new Login ID for system access
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleCreateCredential} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="new-loginid">Login ID</Label>
                     <Input
@@ -391,22 +412,28 @@ export default function CredentialManagementPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowCreateDialog(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={createCredential.isPending}>
-                    {createCredential.isPending ? 'Creating...' : 'Create Login ID'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+                  
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowCreateDialog(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={createCredential.isPending}>
+                      {createCredential.isPending ? 'Creating...' : 'Create'}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+            
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Log out
+            </Button>
+          </div>
         </div>
 
         {error && (
@@ -423,111 +450,11 @@ export default function CredentialManagementPage() {
           </Alert>
         )}
 
-        {currentLoginId && (
-          <Card>
-            <CardHeader>
-              <CardTitle>My Admin Account</CardTitle>
-              <CardDescription>
-                Manage your own Login ID: <strong>{currentLoginId}</strong>
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-3">
-                <Dialog open={showMyResetDialog} onOpenChange={setShowMyResetDialog}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Reset My Password
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Reset My Password</DialogTitle>
-                      <DialogDescription>
-                        Enter a new password for your account
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleResetMyPassword}>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="my-new-password">New Password</Label>
-                          <Input
-                            id="my-new-password"
-                            type="password"
-                            value={myNewPassword}
-                            onChange={(e) => setMyNewPassword(e.target.value)}
-                            placeholder="Enter new password"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setShowMyResetDialog(false);
-                            setMyNewPassword('');
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit" disabled={resetCredential.isPending}>
-                          {resetCredential.isPending ? 'Resetting...' : 'Reset Password'}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-
-                <AlertDialog open={showDisableMyAccountDialog} onOpenChange={setShowDisableMyAccountDialog}>
-                  <Button 
-                    variant="destructive" 
-                    onClick={() => setShowDisableMyAccountDialog(true)}
-                    disabled={!canDisableMyAccount}
-                  >
-                    <Ban className="h-4 w-4 mr-2" />
-                    Disable My Account
-                  </Button>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Disable Your Account?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will disable your Login ID <strong>{currentLoginId}</strong> and you will be logged out immediately. 
-                        You will not be able to access the system until another admin re-enables your account.
-                        <br /><br />
-                        <strong>Warning:</strong> This action cannot be undone by yourself.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDisableMyAccount}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Disable My Account
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-              
-              {!canDisableMyAccount && (
-                <p className="text-sm text-muted-foreground mt-3">
-                  You cannot disable your account because you are the last enabled Admin.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        <Separator />
-
         <Card>
           <CardHeader>
-            <CardTitle>All Login IDs</CardTitle>
+            <CardTitle>Existing Login IDs</CardTitle>
             <CardDescription>
-              Manage all system Login IDs. After creating a Login ID, users can log in with their credentials and access features based on their assigned role.
+              Manage existing Login IDs and their access levels
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -541,111 +468,226 @@ export default function CredentialManagementPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {credentials.map((cred) => (
-                  <TableRow key={cred.id}>
-                    <TableCell className="font-medium">{cred.id}</TableCell>
-                    <TableCell>
-                      <Badge variant={getRoleBadgeVariant(cred.role)}>
-                        {getRoleLabel(cred.role)}
-                      </Badge>
+                {credentials.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                      No credentials found
                     </TableCell>
-                    <TableCell>
-                      {cred.enabled ? (
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Enabled
+                  </TableRow>
+                ) : (
+                  credentials.map((cred) => (
+                    <TableRow key={cred.id}>
+                      <TableCell className="font-medium">
+                        {cred.id}
+                        {cred.id === currentLoginId && (
+                          <Badge variant="outline" className="ml-2">You</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getRoleBadgeVariant(cred.role)}>
+                          {getRoleLabel(cred.role)}
                         </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                          <Ban className="h-3 w-3 mr-1" />
-                          Disabled
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {cred.id !== currentLoginId && (
-                          <>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setSelectedLoginId(cred.id)}
-                                >
-                                  <RefreshCw className="h-3 w-3 mr-1" />
-                                  Reset
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Reset Password</DialogTitle>
-                                  <DialogDescription>
-                                    Enter a new password for <strong>{cred.id}</strong>
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <form onSubmit={handleResetCredential}>
-                                  <div className="space-y-4 py-4">
-                                    <div className="space-y-2">
-                                      <Label htmlFor="reset-password">New Password</Label>
-                                      <Input
-                                        id="reset-password"
-                                        type="password"
-                                        value={resetPassword}
-                                        onChange={(e) => setResetPassword(e.target.value)}
-                                        placeholder="Enter new password"
-                                        required
-                                      />
-                                    </div>
-                                  </div>
-                                  <DialogFooter>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      onClick={() => {
-                                        setShowResetDialog(false);
-                                        setResetPassword('');
-                                      }}
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button type="submit" disabled={resetCredential.isPending}>
-                                      {resetCredential.isPending ? 'Resetting...' : 'Reset Password'}
-                                    </Button>
-                                  </DialogFooter>
-                                </form>
-                              </DialogContent>
-                            </Dialog>
-
-                            {cred.enabled ? (
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDisableCredential(cred.id)}
-                                disabled={disableCredential.isPending}
-                              >
-                                <Ban className="h-3 w-3 mr-1" />
-                                Disable
-                              </Button>
-                            ) : (
+                      </TableCell>
+                      <TableCell>
+                        {cred.enabled ? (
+                          <Badge variant="default" className="bg-green-600">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Enabled
+                          </Badge>
+                        ) : (
+                          <Badge variant="destructive">
+                            <Ban className="h-3 w-3 mr-1" />
+                            Disabled
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleEnableCredential(cred.id)}
-                                disabled={enableCredential.isPending}
+                                onClick={() => setSelectedLoginId(cred.id)}
                               >
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Enable
+                                <RefreshCw className="h-3 w-3 mr-1" />
+                                Reset Password
                               </Button>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Reset Password</DialogTitle>
+                                <DialogDescription>
+                                  Set a new password for {cred.id}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <form onSubmit={handleResetCredential} className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="reset-password">New Password</Label>
+                                  <Input
+                                    id="reset-password"
+                                    type="password"
+                                    value={resetPassword}
+                                    onChange={(e) => setResetPassword(e.target.value)}
+                                    placeholder="Enter new password"
+                                    required
+                                  />
+                                </div>
+                                
+                                <DialogFooter>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setShowResetDialog(false);
+                                      setResetPassword('');
+                                    }}
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button type="submit" disabled={resetCredential.isPending}>
+                                    {resetCredential.isPending ? 'Resetting...' : 'Reset Password'}
+                                  </Button>
+                                </DialogFooter>
+                              </form>
+                            </DialogContent>
+                          </Dialog>
+                          
+                          {cred.enabled ? (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDisableCredential(cred.id)}
+                              disabled={disableCredential.isPending}
+                            >
+                              <Ban className="h-3 w-3 mr-1" />
+                              Disable
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleEnableCredential(cred.id)}
+                              disabled={enableCredential.isPending}
+                            >
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Enable
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>My Account</CardTitle>
+            <CardDescription>
+              Manage your own Login ID settings
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Current Login ID</p>
+                <p className="text-sm text-muted-foreground">{currentLoginId || 'Not available'}</p>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            <div className="flex gap-3">
+              <Dialog open={showMyResetDialog} onOpenChange={setShowMyResetDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Key className="h-4 w-4 mr-2" />
+                    Reset My Password
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Reset Your Password</DialogTitle>
+                    <DialogDescription>
+                      Set a new password for your account
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleResetMyPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="my-new-password">New Password</Label>
+                      <Input
+                        id="my-new-password"
+                        type="password"
+                        value={myNewPassword}
+                        onChange={(e) => setMyNewPassword(e.target.value)}
+                        placeholder="Enter new password"
+                        required
+                      />
+                    </div>
+                    
+                    <DialogFooter>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowMyResetDialog(false);
+                          setMyNewPassword('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={resetCredential.isPending}>
+                        {resetCredential.isPending ? 'Resetting...' : 'Reset Password'}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+              
+              <AlertDialog open={showDisableMyAccountDialog} onOpenChange={setShowDisableMyAccountDialog}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" disabled={!canDisableMyAccount}>
+                    <Ban className="h-4 w-4 mr-2" />
+                    Disable My Account
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Disable Your Account?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will disable your Login ID and log you out. You will need another Admin to re-enable your account.
+                      {!canDisableMyAccount && (
+                        <span className="block mt-2 text-destructive font-medium">
+                          You cannot disable the last enabled Admin account.
+                        </span>
+                      )}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDisableMyAccount}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Disable My Account
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+            
+            {!canDisableMyAccount && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  You cannot disable your account because you are the last enabled Admin. Create or enable another Admin first.
+                </AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
       </div>

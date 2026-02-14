@@ -4,25 +4,17 @@ import { useIsCallerAdmin } from '../../hooks/useCurrentUser';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useQueryClient } from '@tanstack/react-query';
-import { Home, FileText, Lightbulb, Users, Settings, LogOut, Menu, Shield, Key } from 'lucide-react';
-import { clearCredentialSession, getAuthenticatedRole } from '../../utils/credentialSession';
-import { clearAdminToken } from '../../hooks/useQueries';
+import { Home, FileText, Lightbulb, Users, Settings, LogOut, Menu, Shield, Key, User } from 'lucide-react';
+import { getAuthenticatedRole } from '../../utils/credentialSession';
+import { useAppLogout } from '../../hooks/useAppLogout';
 import { Role } from '../../backend';
 
 export default function AppHeader() {
   const navigate = useNavigate();
   const { data: userProfile } = useGetCallerUserProfile();
   const { data: isAdmin } = useIsCallerAdmin();
-  const queryClient = useQueryClient();
+  const { logout } = useAppLogout();
   const credentialRole = getAuthenticatedRole();
-
-  const handleLogout = async () => {
-    clearCredentialSession();
-    clearAdminToken();
-    queryClient.clear();
-    navigate({ to: '/login' });
-  };
 
   const initials = userProfile?.name
     ? userProfile.name
@@ -143,7 +135,19 @@ export default function AppHeader() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
+              {hasManagerAccess && (
+                <DropdownMenuItem onClick={() => navigate({ to: '/manager/profile' })}>
+                  <User className="h-4 w-4 mr-2" />
+                  Manager Profile
+                </DropdownMenuItem>
+              )}
+              {credentialRole === Role.operator && (
+                <DropdownMenuItem onClick={() => navigate({ to: '/operator/profile' })}>
+                  <User className="h-4 w-4 mr-2" />
+                  Operator Profile
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={logout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </DropdownMenuItem>

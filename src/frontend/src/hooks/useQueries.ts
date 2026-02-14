@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Observation, Kaizen, KaizenStatus, Photo, OperatorActivity, OperatorProfileActivity, UserProfile, Role, LoginId, HashedPassword, AuthorizationToken } from '../backend';
+import type { Observation, Kaizen, KaizenStatus, Photo, OperatorActivity, OperatorProfileActivity, UserProfile, Role, LoginId, HashedPassword, AuthorizationToken, Credential } from '../backend';
 import { UserRole } from '../backend';
 import type { Principal } from '@icp-sdk/core/principal';
 import { ExternalBlob } from '../backend';
@@ -373,13 +373,6 @@ export function useAuthorizeAdmin() {
   });
 }
 
-// Credential Management (Admin-only with token)
-interface Credential {
-  id: LoginId;
-  role: Role;
-  enabled: boolean;
-}
-
 // Store admin token in memory for the session
 let adminToken: AuthorizationToken | null = null;
 
@@ -395,19 +388,19 @@ export function clearAdminToken() {
   adminToken = null;
 }
 
-// Mock list credentials - we'll fetch by trying to authorize
+// List credentials from backend
 export function useListCredentials() {
   const { actor, isFetching } = useActor();
+  const token = getAdminToken();
 
   return useQuery<Credential[]>({
     queryKey: ['credentials'],
     queryFn: async () => {
       if (!actor) return [];
-      // Backend doesn't have a list method, return empty for now
-      // The backend will need to add a listCredentials method
-      return [];
+      if (!token) return [];
+      return actor.listCredentials(token);
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !isFetching && !!token,
   });
 }
 

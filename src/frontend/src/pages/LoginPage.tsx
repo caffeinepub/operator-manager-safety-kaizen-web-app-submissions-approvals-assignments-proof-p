@@ -10,11 +10,12 @@ import { UserCircle, Shield, ShieldCheck } from 'lucide-react';
 import { setCredentialSession } from '../utils/credentialSession';
 import { Role } from '../backend';
 import { mapCredentialError } from '../utils/loginSelection';
+import { trimCredentialField, validateCredentials } from '../utils/credentialInput';
 
 export default function LoginPage() {
   const { data: isMaintenanceMode } = useGetMaintenanceMode();
   const navigate = useNavigate();
-  const validateCredentials = useValidateCredentials();
+  const validateCredentialsMutation = useValidateCredentials();
   
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
@@ -24,6 +25,17 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Trim inputs
+    const trimmedLoginId = trimCredentialField(loginId);
+    const trimmedPassword = trimCredentialField(password);
+    
+    // Validate that fields are not empty or whitespace-only
+    const validationError = validateCredentials(loginId, password);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     
     try {
       // Map UI role to backend Role enum
@@ -35,15 +47,15 @@ export default function LoginPage() {
       
       const backendRole = roleMap[selectedRole];
       
-      // Validate credentials with selected role
-      const authenticatedRole = await validateCredentials.mutateAsync({
-        loginId,
-        password,
+      // Validate credentials with selected role using trimmed values
+      const authenticatedRole = await validateCredentialsMutation.mutateAsync({
+        loginId: trimmedLoginId,
+        password: trimmedPassword,
         selectedRole: backendRole,
       });
       
       // Store credential session with authenticated role
-      setCredentialSession(loginId, authenticatedRole);
+      setCredentialSession(trimmedLoginId, authenticatedRole);
       
       // Navigate based on selected role
       if (selectedRole === 'admin') {
@@ -180,9 +192,9 @@ export default function LoginPage() {
               type="submit"
               className="w-full"
               size="lg"
-              disabled={validateCredentials.isPending}
+              disabled={validateCredentialsMutation.isPending}
             >
-              {validateCredentials.isPending ? 'Signing in...' : 'Sign In'}
+              {validateCredentialsMutation.isPending ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
           

@@ -91,6 +91,12 @@ export const Photo = IDL.Record({
   'timestamp' : Time,
   'uploader' : IDL.Principal,
 });
+export const Credential = IDL.Record({
+  'id' : LoginId,
+  'password' : HashedPassword,
+  'role' : Role,
+  'enabled' : IDL.Bool,
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -168,6 +174,11 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'listCredentials' : IDL.Func(
+      [AuthorizationToken],
+      [IDL.Vec(Credential)],
+      ['query'],
+    ),
   'pingActivity' : IDL.Func([], [], []),
   'rejectKaizen' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'resetPasswordWithToken' : IDL.Func(
@@ -291,6 +302,12 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : Time,
     'uploader' : IDL.Principal,
   });
+  const Credential = IDL.Record({
+    'id' : LoginId,
+    'password' : HashedPassword,
+    'role' : Role,
+    'enabled' : IDL.Bool,
+  });
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -372,6 +389,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'listCredentials' : IDL.Func(
+        [AuthorizationToken],
+        [IDL.Vec(Credential)],
+        ['query'],
+      ),
     'pingActivity' : IDL.Func([], [], []),
     'rejectKaizen' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'resetPasswordWithToken' : IDL.Func(

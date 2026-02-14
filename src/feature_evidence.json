@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-admin-authorization-form-to-prefill-the-admin-login-id-as-admin-and-the-password-as-1234-when-the-page-first-loads-while-still-allowing-the-user-to-edit-both-fields-before-submitting",
-      "featureTitle": "Update the Admin Authorization form to prefill the Admin Login ID as \"admin\" and the Password as \"1234\" when the page first loads, while still allowing the user to edit both fields before submitting.",
+      "featureId": "feature-ensure-the-manager-profile-and-operator-profile-pages-always-show-a-clearly-visible-log-out-button-and-that-it-successfully-signs-the-user-out-and-returns-them-to-the-login-page",
+      "featureTitle": "Ensure the Manager Profile and Operator Profile pages always show a clearly visible \"Log out\" button and that it successfully signs the user out and returns them to the /login page.",
       "files": [
-        "frontend/src/pages/admin/CredentialManagementPage.tsx"
+        "frontend/src/pages/manager/ManagerProfilePage.tsx",
+        "frontend/src/pages/operator/OperatorProfilePage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,7 +18,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-65"
+        "REQ-78"
       ],
       "confidence": "high"
     }

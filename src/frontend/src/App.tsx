@@ -18,6 +18,8 @@ import ObservationFormPage from './pages/observations/ObservationFormPage';
 import KaizenListPage from './pages/kaizen/KaizenListPage';
 import KaizenDetailPage from './pages/kaizen/KaizenDetailPage';
 import KaizenFormPage from './pages/kaizen/KaizenFormPage';
+import ManagerProfilePage from './pages/manager/ManagerProfilePage';
+import OperatorProfilePage from './pages/operator/OperatorProfilePage';
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -135,6 +137,28 @@ const managerActivityRoute = createRoute({
   ),
 });
 
+const managerProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/manager/profile',
+  component: () => (
+    <RequireAuth>
+      <RequireRole requiredRole="manager">
+        <ManagerProfilePage />
+      </RequireRole>
+    </RequireAuth>
+  ),
+});
+
+const operatorProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/operator/profile',
+  component: () => (
+    <RequireAuth>
+      <OperatorProfilePage />
+    </RequireAuth>
+  ),
+});
+
 const adminRolesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin/roles',
@@ -184,6 +208,8 @@ const routeTree = rootRoute.addChildren([
   kaizenDetailRoute,
   managerInactivityRoute,
   managerActivityRoute,
+  managerProfileRoute,
+  operatorProfileRoute,
   adminRolesRoute,
   adminCredentialsRoute,
   adminMaintenanceRoute,

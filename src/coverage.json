@@ -1,50 +1,37 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T20:00:09.268Z",
+  "generatedAt": "2026-02-14T20:54:31.783Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
+    "total": 1,
     "implemented": 1,
     "items": [
       {
-        "id": "REQ-65",
-        "summary": "Update the Admin Authorization form to prefill the Admin Login ID as \"admin\" and the Password as \"1234\" when the page first loads, while still allowing the user to edit both fields before submitting.",
+        "id": "REQ-78",
+        "summary": "Ensure the Manager Profile and Operator Profile pages always show a clearly visible \"Log out\" button and that it successfully signs the user out and returns them to the /login page.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/admin/CredentialManagementPage.tsx"
+          "frontend/src/pages/manager/ManagerProfilePage.tsx",
+          "frontend/src/pages/operator/OperatorProfilePage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/admin/CredentialManagementPage.tsx"
+          "frontend/src/pages/manager/ManagerProfilePage.tsx",
+          "frontend/src/pages/operator/OperatorProfilePage.tsx"
         ]
-      },
-      {
-        "id": "REQ-66",
-        "summary": "Change the backend’s default seeded Admin credential password to \"1234\" (Login ID remains \"admin\"), so that a fresh installation can authorize admin actions using admin/1234.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-67",
-        "summary": "Ensure the backend Admin Authorization endpoint can successfully authorize on a fresh install even if it is called before any other credential-validation endpoint, by applying the same default-admin seeding behavior when the credential store is empty.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/pages/admin/CredentialManagementPage.tsx",
+    "frontend/src/pages/manager/ManagerProfilePage.tsx",
+    "frontend/src/pages/operator/OperatorProfilePage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
