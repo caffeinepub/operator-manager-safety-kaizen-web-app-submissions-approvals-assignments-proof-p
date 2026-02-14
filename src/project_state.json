@@ -1,19 +1,28 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 25,
-  "summary": "Expand manager workflow so that after operators submit any Kaizen, hazard, or SUSA, managers are notified and can approve/reject, and the decision/status is visible to operators in their login experience. Additionally, add an admin-managed login/credential management capability so manager/operator access can be controlled via an admin page.",
+  "projectStateVersion": 39,
+  "summary": "User requests removing Internet Identity login entirely and replacing it with a simple username/login ID + password authentication system, with an Admin section to manage Operator/Manager login IDs and passwords.",
   "architectural_notes": [
     "User requested an alternative authentication approach: an Admin-managed userID/password login and credential management page for Operators/Managers (in addition to or instead of Internet Identity).",
-    "User requests password-based authentication: add \"Sign in as Admin\" on login with default credentials admin/pass; Admin can create userID/password for Managers and Operators via an admin page (conflicts with current Internet Identity-only direction)."
+    "User requests password-based authentication: add \"Sign in as Admin\" on login with default credentials admin/pass; Admin can create userID/password for Managers and Operators via an admin page (conflicts with current Internet Identity-only direction).",
+    "User explicitly requested switching to a proper password-based login system (username/password) for Admin/Manager access, instead of relying solely on Internet Identity role assignment.",
+    "User requests removing the Internet Identity option entirely and switching to a username/loginID + password authentication system, with Admin managing Operator/Manager credentials in an admin section.",
+    "Login screen should include an Admin panel/entry point; default Admin credentials must be username=admin and password=pass.",
+    "Admin credentials management UI should include clear labels plus actions to reset password and disable/enable accounts.",
+    "User requests Admin Authorization credentials be set to Login ID \"admin\" with password \"1234\" (instead of \"pass\")."
   ],
   "known_issues": [
     "Login page branding/theme changes are not appearing (login page not updated yet).",
     "Deployment/build is failing (deployment encountered an error; internal LLM/build error reported during attempted update).",
     "Requested changes to login flow/UI are not reflected; user still sees the earlier login experience and needs two distinct login options (Operator and Manager).",
     "Login page is showing a different logo than the one provided/expected (logo asset mismatch).",
-    "User reports being unable to log in as Manager; manager UI/role assignment options are not visible/available in the app as expected."
+    "User reports being unable to log in as Manager; manager UI/role assignment options are not visible/available in the app as expected.",
+    "Admin panel/entry point is missing from the login screen; user requests adding it and setting default admin/pass credentials.",
+    "User reports the Admin/password-based login is not accepting the password (\"password is not taking\").",
+    "Admin is unable to create new login IDs even when logged in as Admin (backend/UI reports 'only admin can create IDs' incorrectly).",
+    "After logging into the Admin profile with username/password, the app prompts again on the Admin Authorization page for a second password entry (double authorization prompt)."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-implement-internet-identity-sign-in-and-role-based-access-for-two-user-types-operator-and-manager-and-optionally-a-department-user-role-if-needed-for-kaizen-execution-provide-an-admin-manager-only-ui-to-assign-roles-to-registered-principals-so-access-to-features-is-permissioned",
@@ -318,6 +327,118 @@
         "REQ-42"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-login-experience-to-support-password-based-role-unlocking-using-clear-english-messaging-and-without-editing-immutable-authentication-hooks",
+      "title": "Update the frontend login experience to support password-based role unlocking, using clear English messaging and without editing immutable authentication hooks.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-new-admin-only-ui-screen-for-password-credential-management-set-reset-disable-and-link-it-from-the-existing-admin-navigation",
+      "title": "Add a new admin-only UI screen for password credential management (set/reset/disable) and link it from the existing admin navigation.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-login-ux-to-remove-all-internet-identity-role-entry-points-sign-in-as-operator-manager-admin-and-replace-them-with-a-simple-login-id-password-form-that-supports-signing-in-as-operator-or-manager-and-admin-if-present-using-clear-english-labels-and-validation",
+      "title": "Update the login UX to remove all Internet Identity role entry points (“Sign in as Operator/Manager/Admin”) and replace them with a simple Login ID + Password form that supports signing in as Operator or Manager (and Admin if present), using clear English labels and validation.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-credentials-screen-to-manage-operator-and-manager-login-ids-and-passwords-create-reset-enable-disable-with-clear-english-ui-text-referring-to-login-id-not-internet-identity-and-ensuring-operator-manager-roles-are-selectable",
+      "title": "Update the Admin “Credentials” screen to manage Operator and Manager login IDs and passwords (create, reset, enable/disable), with clear English UI text referring to “Login ID” (not “Internet Identity”) and ensuring Operator/Manager roles are selectable.",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-adjust-authentication-gating-so-the-app-works-end-to-end-with-the-new-login-id-password-flow-while-keeping-immutable-authentication-hooks-untouched-ensure-protected-routes-consistently-redirect-unauthenticated-users-to-the-updated-login-page-and-that-logout-clears-any-credential-unlock-session-flags",
+      "title": "Adjust authentication gating so the app works end-to-end with the new Login ID + Password flow while keeping immutable authentication hooks untouched; ensure protected routes consistently redirect unauthenticated users to the updated /login page and that logout clears any credential-unlock/session flags.",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-login-screen-to-include-an-explicit-admin-option-alongside-the-existing-operator-and-manager-options-so-users-can-choose-admin-on-the-login-screen",
+      "title": "Update the Login screen to include an explicit “Admin” option alongside the existing Operator and Manager options, so users can choose Admin on the login screen.",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-when-the-user-signs-in-successfully-and-their-selected-role-on-the-login-screen-is-admin-navigate-them-directly-to-the-admin-credentials-management-page-admin-credentials-for-non-admin-selections-keep-the-existing-post-login-navigation-behavior",
+      "title": "When the user signs in successfully and their selected role on the Login screen is “Admin”, navigate them directly to the Admin credentials management page (/admin/credentials). For non-admin selections, keep the existing post-login navigation behavior.",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-a-first-time-default-admin-credential-can-successfully-sign-in-when-no-credentials-exist-yet-by-seeding-a-default-login-id-admin-with-password-pass-only-if-the-credential-store-is-empty-and-ensure-the-seeded-admin-can-reach-admin-credentials-after-login",
+      "title": "Ensure a first-time default Admin credential can successfully sign in when no credentials exist yet by seeding a default Login ID \"admin\" with password \"pass\" only if the credential store is empty, and ensure the seeded Admin can reach /admin/credentials after login.",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-explicit-admin-support-to-the-password-credential-role-system-so-that-selecting-admin-on-the-login-page-is-validated-against-the-authenticated-credential-s-role-and-access-is-denied-with-clear-english-messaging-when-the-selected-role-does-not-match-the-credential-s-role",
+      "title": "Add explicit Admin support to the password-credential role system so that selecting \"Admin\" on the login page is validated against the authenticated credential’s role, and access is denied with clear English messaging when the selected role does not match the credential’s role.",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-login-failure-diagnostics-in-the-login-page-by-surfacing-backend-error-reasons-in-a-user-safe-way-still-in-english-and-add-a-specific-message-when-the-credential-exists-but-is-disabled",
+      "title": "Improve login failure diagnostics in the Login page by surfacing backend error reasons in a user-safe way (still in English), and add a specific message when the credential exists but is disabled.",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-admin-credentials-ui-copy-labels-to-be-clearer-and-consistently-use-the-term-login-id-not-ambiguous-credential-including-clearer-action-labels-for-creating-accounts-resetting-passwords-and-enabling-disabling-accounts",
+      "title": "Improve the Admin Credentials UI copy/labels to be clearer and consistently use the term \"Login ID\" (not ambiguous \"Credential\"), including clearer action labels for creating accounts, resetting passwords, and enabling/disabling accounts.",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-admin-profile-self-service-actions-to-reset-password-and-disable-the-currently-signed-in-admin-account-using-clear-english-confirmations-and-warnings-to-prevent-accidental-lockout",
+      "title": "Add Admin 'profile' self-service actions to reset password and disable the currently signed-in admin account, using clear English confirmations and warnings to prevent accidental lockout.",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-credentials-management-page-authorization-form-to-sanitize-input-trim-whitespace-and-display-user-safe-english-error-messages-when-admin-authorization-fails-consistent-with-the-login-page-messaging",
+      "title": "Update the Admin Credentials Management page authorization form to sanitize input (trim whitespace) and display user-safe English error messages when admin authorization fails, consistent with the login page messaging.",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-authorization-form-to-prefill-the-admin-login-id-as-admin-and-the-password-as-1234-when-the-page-first-loads-while-still-allowing-the-user-to-edit-both-fields-before-submitting",
+      "title": "Update the Admin Authorization form to prefill the Admin Login ID as \"admin\" and the Password as \"1234\" when the page first loads, while still allowing the user to edit both fields before submitting.",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -435,6 +556,118 @@
       "id": "AR-21",
       "summary": "Add a third login option: \"Sign in as Admin\" with initial credentials (admin/pass), and an Admin page to create/manage username+password accounts for Managers and Operators (password-based authentication)",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Implement username/password-based authentication (Admin/Manager/Operator) and credential management, replacing/superseding the current Internet Identity-only login flow",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Add backend support for password credentials that can unlock the caller’s app role (Operator/User vs Manager/Admin) after successful password verification, while keeping the existing Internet Identity principal as the underlying identity.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Implement a secure admin bootstrap for the password login system so that the app can be initialized when no admin credential exists yet.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Add admin-only backend APIs to manage password credentials for users/roles (create/update/reset/disable), and ensure they are restricted to Admin/Manager callers.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Add any required Motoko state upgrade/migration logic to preserve existing canister state while introducing credential storage for the password login system.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Implement backend credential storage and APIs in the single Motoko actor to support password authentication and admin-managed credentials for Operator and Manager login IDs, including: verify credentials for sign-in and admin-only CRUD operations (create, reset password, enable/disable, list).",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Add an Admin entry point/panel on the login screen and set default Admin credentials to username=admin and password=pass",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Seed a default Admin credential in the backend with Login ID \"admin\" and password \"pass\" if (and only if) no credentials exist yet, so the app always has an initial Admin login for first-time setup.",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Fix the admin credential flow so that a user who successfully signs in with an Admin Login ID + Password can create new Login IDs (credentials) without receiving an incorrect \"Only admins can create IDs\"/unauthorized error.",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Fix backend Admin authorization so the default seeded Admin credential (Login ID \"admin\", Password \"pass\") works on the Admin Authorization form even on a fresh install when the credential store is empty.",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Improve backend credential validation error reasons so the frontend can display correct English messages for: invalid credentials, disabled Login ID, and selected role mismatch (for both validateCredentials and authorizeAdmin).",
+      "reqIds": [
+        "REQ-63"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-38",
+      "summary": "Update Admin Authorization default credentials so Admin Login ID is \"admin\" and password is \"1234\" (and ensure admin authorization accepts it)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Remove or streamline the extra Admin Authorization password prompt after already signing in to the Admin profile (avoid double password entry)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Change the backend’s default seeded Admin credential password to \"1234\" (Login ID remains \"admin\"), so that a fresh installation can authorize admin actions using admin/1234.",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Ensure the backend Admin Authorization endpoint can successfully authorize on a fresh install even if it is called before any other credential-validation endpoint, by applying the same default-admin seeding behavior when the credential store is empty.",
+      "reqIds": [
+        "REQ-67"
+      ],
       "status": "pending"
     }
   ],

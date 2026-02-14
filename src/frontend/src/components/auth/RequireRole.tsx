@@ -3,16 +3,19 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from '@tanstack/react-router';
+import { getAuthenticatedRole } from '../../utils/credentialSession';
+import { Role } from '../../backend';
 
 export default function RequireRole({
   children,
   requiredRole,
 }: {
   children: React.ReactNode;
-  requiredRole: 'admin' | 'user';
+  requiredRole: 'admin' | 'manager';
 }) {
   const { data: isAdmin, isLoading } = useIsCallerAdmin();
   const navigate = useNavigate();
+  const credentialRole = getAuthenticatedRole();
 
   if (isLoading) {
     return (
@@ -25,22 +28,48 @@ export default function RequireRole({
     );
   }
 
-  if (requiredRole === 'admin' && !isAdmin) {
-    return (
-      <div className="container max-w-2xl mx-auto py-12 px-4">
-        <Alert variant="destructive">
-          <ShieldAlert className="h-5 w-5" />
-          <AlertTitle>Access Denied</AlertTitle>
-          <AlertDescription>
-            You do not have permission to access this page. Manager access is required. 
-            Please ask an Admin to assign Manager/Admin access to your principal through the Role Management page.
-          </AlertDescription>
-        </Alert>
-        <div className="mt-6 text-center">
-          <Button onClick={() => navigate({ to: '/' })}>Return to Dashboard</Button>
+  // Admin pages require Admin role
+  if (requiredRole === 'admin') {
+    const hasAdminAccess = isAdmin || credentialRole === Role.admin;
+    
+    if (!hasAdminAccess) {
+      return (
+        <div className="container max-w-2xl mx-auto py-12 px-4">
+          <Alert variant="destructive">
+            <ShieldAlert className="h-5 w-5" />
+            <AlertTitle>Access Denied</AlertTitle>
+            <AlertDescription>
+              Your Login ID does not have Admin access. Please contact an Admin.
+            </AlertDescription>
+          </Alert>
+          <div className="mt-6 text-center">
+            <Button onClick={() => navigate({ to: '/' })}>Return to Dashboard</Button>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+  }
+
+  // Manager pages allow Manager or Admin
+  if (requiredRole === 'manager') {
+    const hasManagerAccess = isAdmin || credentialRole === Role.manager || credentialRole === Role.admin;
+    
+    if (!hasManagerAccess) {
+      return (
+        <div className="container max-w-2xl mx-auto py-12 px-4">
+          <Alert variant="destructive">
+            <ShieldAlert className="h-5 w-5" />
+            <AlertTitle>Access Denied</AlertTitle>
+            <AlertDescription>
+              You do not have Manager access. Please contact an Admin to obtain Manager credentials.
+            </AlertDescription>
+          </Alert>
+          <div className="mt-6 text-center">
+            <Button onClick={() => navigate({ to: '/' })}>Return to Dashboard</Button>
+          </div>
+        </div>
+      );
+    }
   }
 
   return <>{children}</>;

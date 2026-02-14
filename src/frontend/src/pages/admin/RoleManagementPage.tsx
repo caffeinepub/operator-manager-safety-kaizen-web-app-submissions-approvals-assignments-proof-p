@@ -5,138 +5,128 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useAssignCallerUserRole, useGetUserProfile } from '../../hooks/useQueries';
+import { useAssignCallerUserRole } from '../../hooks/useQueries';
 import { UserRole } from '../../backend';
 import { Principal } from '@icp-sdk/core/principal';
-import { toast } from 'sonner';
-import { Shield, Info } from 'lucide-react';
+import { Shield, AlertCircle, CheckCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function RoleManagementPage() {
-  const [principalInput, setPrincipalInput] = useState('');
-  const [selectedRole, setSelectedRole] = useState<UserRole>(UserRole.user);
-  const [lookupPrincipal, setLookupPrincipal] = useState<Principal | null>(null);
+  const [principalId, setPrincipalId] = useState('');
+  const [selectedRole, setSelectedRole] = useState<UserRole>(UserRole.admin);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
   const assignRole = useAssignCallerUserRole();
-  const { data: userProfile } = useGetUserProfile(lookupPrincipal);
 
-  const handleLookup = () => {
-    try {
-      const principal = Principal.fromText(principalInput.trim());
-      setLookupPrincipal(principal);
-    } catch (error) {
-      toast.error('Invalid principal format');
-    }
-  };
-
-  const handleAssignRole = async () => {
-    if (!lookupPrincipal) {
-      toast.error('Please lookup a user first');
-      return;
-    }
+  const handleAssignRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
 
     try {
-      await assignRole.mutateAsync({ user: lookupPrincipal, role: selectedRole });
-      toast.success('Role assigned successfully');
-      setPrincipalInput('');
-      setLookupPrincipal(null);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to assign role');
+      const principal = Principal.fromText(principalId);
+      await assignRole.mutateAsync({ user: principal, role: selectedRole });
+      setSuccess(`Role assigned successfully to ${principalId}`);
+      setPrincipalId('');
+    } catch (err: any) {
+      setError(err.message || 'Failed to assign role. Please check the Principal ID format.');
     }
   };
 
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold mb-2">Role Management</h1>
-          <p className="text-muted-foreground">Assign roles to users by their principal ID</p>
+          <p className="text-muted-foreground">
+            Assign Manager or Admin roles to users by their Principal ID
+          </p>
         </div>
 
-        <Alert>
-          <Info className="h-5 w-5" />
-          <AlertTitle>How User Onboarding Works</AlertTitle>
-          <AlertDescription className="space-y-2 text-sm">
-            <p>This application uses Internet Identity for authentication. Here's how to onboard new users:</p>
-            <ol className="list-decimal list-inside space-y-1 ml-2">
-              <li>New users sign in with Internet Identity (they can choose any role button on the login page)</li>
-              <li>After signing in, users share their Principal ID with you (the Admin)</li>
-              <li>You assign them the appropriate role below: <strong>User (Operator)</strong> or <strong>Admin (Manager)</strong></li>
-            </ol>
-            <p className="mt-2 font-medium">Note: No passwords are created or stored. All authentication is handled securely via Internet Identity.</p>
-          </AlertDescription>
-        </Alert>
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {success && (
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
+        )}
 
         <Card>
           <CardHeader>
-            <CardTitle>Assign User Role</CardTitle>
-            <CardDescription>Enter a user's principal ID to assign or update their role</CardDescription>
+            <CardTitle>Assign Role</CardTitle>
+            <CardDescription>
+              Enter the user's Principal ID and select their access level
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="principal">User Principal ID</Label>
-              <div className="flex gap-2">
+          <CardContent>
+            <form onSubmit={handleAssignRole} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="principal">Principal ID</Label>
                 <Input
                   id="principal"
-                  value={principalInput}
-                  onChange={(e) => setPrincipalInput(e.target.value)}
-                  placeholder="Enter principal ID..."
-                  className="font-mono text-sm"
+                  value={principalId}
+                  onChange={(e) => setPrincipalId(e.target.value)}
+                  placeholder="xxxxx-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx-xxx"
+                  required
                 />
-                <Button onClick={handleLookup} variant="outline">
-                  Lookup
-                </Button>
+                <p className="text-xs text-muted-foreground">
+                  The user's Internet Identity Principal ID
+                </p>
               </div>
-            </div>
 
-            {lookupPrincipal && (
-              <div className="p-4 border rounded-lg bg-muted/50 space-y-2">
-                <p className="text-sm font-medium">User Profile</p>
-                {userProfile ? (
-                  <>
-                    <p className="text-sm">
-                      <span className="text-muted-foreground">Name:</span> {userProfile.name}
-                    </p>
-                    <p className="text-sm">
-                      <span className="text-muted-foreground">Current Role:</span> {userProfile.role}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No profile found for this user</p>
-                )}
+              <div className="space-y-2">
+                <Label htmlFor="role">Access Level</Label>
+                <Select
+                  value={selectedRole}
+                  onValueChange={(value) => setSelectedRole(value as UserRole)}
+                >
+                  <SelectTrigger id="role">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={UserRole.admin}>Admin / Manager</SelectItem>
+                    <SelectItem value={UserRole.user}>Operator</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="role">Assign Role</Label>
-              <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as UserRole)}>
-                <SelectTrigger id="role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={UserRole.user}>User (Operator)</SelectItem>
-                  <SelectItem value={UserRole.admin}>Admin (Manager)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button onClick={handleAssignRole} disabled={!lookupPrincipal || assignRole.isPending} className="w-full">
-              <Shield className="h-4 w-4 mr-2" />
-              {assignRole.isPending ? 'Assigning...' : 'Assign Role'}
-            </Button>
+              <Button type="submit" disabled={assignRole.isPending}>
+                <Shield className="h-4 w-4 mr-2" />
+                {assignRole.isPending ? 'Assigning...' : 'Assign Role'}
+              </Button>
+            </form>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>How to Find Principal IDs</CardTitle>
+            <CardTitle>How Role Assignment Works</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>Users can find their principal ID by:</p>
-            <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>Checking the metadata section on any observation or Kaizen they submitted</li>
-              <li>Asking them to share their principal ID with you directly</li>
-              <li>Looking at the operator activity report (for admins)</li>
-            </ul>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              <strong>1. User Signs In:</strong> New users first authenticate using Internet Identity. They are automatically assigned the Operator role.
+            </p>
+            <p>
+              <strong>2. Share Principal ID:</strong> The user shares their Principal ID with you (visible in their profile or browser console).
+            </p>
+            <p>
+              <strong>3. Assign Role:</strong> You enter their Principal ID here and assign Manager or Admin access.
+            </p>
+            <p>
+              <strong>4. Password Unlock:</strong> After role assignment, users with Manager/Admin roles must enter valid credentials (username/password) after Internet Identity sign-in to unlock their elevated access.
+            </p>
+            <p>
+              <strong>Note:</strong> Credentials are managed separately in the Credentials page. Role assignment via Principal ID determines who can attempt to unlock Manager/Admin access.
+            </p>
           </CardContent>
         </Card>
       </div>

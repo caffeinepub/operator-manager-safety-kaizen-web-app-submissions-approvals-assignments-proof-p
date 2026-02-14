@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import type { UserProfile } from '../backend';
+import { UserRole } from '../backend';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -30,6 +31,20 @@ export function useIsCallerAdmin() {
     queryFn: async () => {
       if (!actor) return false;
       return actor.isCallerAdmin();
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+}
+
+export function useGetCallerUserRole() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<UserRole>({
+    queryKey: ['callerUserRole'],
+    queryFn: async () => {
+      if (!actor) return UserRole.guest;
+      return actor.getCallerUserRole();
     },
     enabled: !!actor && !actorFetching,
     retry: false,

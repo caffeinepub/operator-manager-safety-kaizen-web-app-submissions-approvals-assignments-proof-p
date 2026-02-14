@@ -14,16 +14,16 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
-export interface OperatorActivity {
-    operator: Principal;
-    lastActivity: Time;
+export interface UserProfile {
+    name: string;
+    role: string;
 }
 export type Time = bigint;
 export interface OperatorProfileActivity {
     operator: Principal;
     lastActivity: Time;
     name?: string;
-    role?: string;
+    role?: Role;
 }
 export interface Observation {
     id: string;
@@ -35,6 +35,7 @@ export interface Observation {
     obsType: string;
     timestamp: Time;
 }
+export type HashedPassword = string;
 export interface Kaizen {
     id: string;
     status: KaizenStatus;
@@ -50,9 +51,14 @@ export interface Kaizen {
     benefit: string;
     problemStatement: string;
 }
-export interface UserProfile {
-    name: string;
-    role: string;
+export interface OperatorActivity {
+    operator: Principal;
+    lastActivity: Time;
+}
+export type LoginId = string;
+export interface AuthorizationToken {
+    loginId: LoginId;
+    isAdmin: boolean;
 }
 export interface Photo {
     id: string;
@@ -72,6 +78,11 @@ export enum KaizenStatus {
     rejected = "rejected",
     inProgress = "inProgress"
 }
+export enum Role {
+    manager = "manager",
+    admin = "admin",
+    operator = "operator"
+}
 export enum UserRole {
     admin = "admin",
     user = "user",
@@ -81,7 +92,8 @@ export interface backendInterface {
     approveKaizen(kaizenId: string, comment: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     assignDepartment(kaizenId: string, department: string, tools: string): Promise<void>;
-    bootstrapAdminIfNeeded(): Promise<void>;
+    authorizeAdmin(loginId: LoginId, password: HashedPassword): Promise<AuthorizationToken>;
+    createCredentialWithToken(token: AuthorizationToken, loginId: LoginId, password: HashedPassword, role: Role, enabled: boolean): Promise<void>;
     getAllKaizens(): Promise<Array<Kaizen>>;
     getAllObservations(): Promise<Array<Observation>>;
     getAllOperatorActivity(): Promise<Array<OperatorProfileActivity>>;
@@ -96,14 +108,16 @@ export interface backendInterface {
     getObservationsByType(obsType: string): Promise<Array<Observation>>;
     getPhotosForKaizen(kaizenId: string): Promise<Array<Photo>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
-    hasAdmin(): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     pingActivity(): Promise<void>;
     rejectKaizen(kaizenId: string, reason: string): Promise<void>;
+    resetPasswordWithToken(token: AuthorizationToken, loginId: LoginId, newPassword: HashedPassword): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    setCredentialStatusWithToken(token: AuthorizationToken, loginId: LoginId, enabled: boolean): Promise<void>;
     setMaintenanceMode(enabled: boolean): Promise<void>;
     submitKaizen(title: string, problemStatement: string, improvement: string, benefit: string, department: string | null): Promise<void>;
     submitObservation(obsType: string, title: string, description: string, area: string | null): Promise<void>;
     updateKaizenStatus(kaizenId: string, newStatus: KaizenStatus): Promise<void>;
     uploadPhoto(kaizenId: string, filename: string, contentType: string, blob: ExternalBlob): Promise<void>;
+    validateCredentials(loginId: LoginId, password: HashedPassword, selectedRole: Role): Promise<void>;
 }

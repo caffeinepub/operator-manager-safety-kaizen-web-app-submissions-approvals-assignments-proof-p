@@ -1,48 +1,40 @@
-// Session storage helper for login intent selection
-type LoginIntent = 'operator' | 'manager' | 'admin';
+// Utility to map backend credential validation errors to user-safe English messages
 
-const LOGIN_INTENT_KEY = 'login_intent';
-const MANAGER_ACCESS_DENIED_KEY = 'manager_access_denied';
-const ADMIN_ACCESS_DENIED_KEY = 'admin_access_denied';
-
-export function setLoginIntent(intent: LoginIntent): void {
-  sessionStorage.setItem(LOGIN_INTENT_KEY, intent);
-}
-
-export function getLoginIntent(): LoginIntent | null {
-  const intent = sessionStorage.getItem(LOGIN_INTENT_KEY);
-  if (intent === 'operator' || intent === 'manager' || intent === 'admin') {
-    return intent;
+export function mapCredentialError(error: any): string {
+  let errorMessage = error?.message || String(error);
+  
+  // Strip common canister trap prefixes to get the actual error message
+  // Examples: "Canister trapped: ...", "Call was rejected: ...", etc.
+  errorMessage = errorMessage
+    .replace(/^Canister trapped:\s*/i, '')
+    .replace(/^Call was rejected:\s*/i, '')
+    .replace(/^Error:\s*/i, '')
+    .trim();
+  
+  // Check for disabled credential
+  if (errorMessage.toLowerCase().includes('disabled')) {
+    return 'This Login ID is disabled. Please contact an Admin.';
   }
-  return null;
-}
-
-export function clearLoginIntent(): void {
-  sessionStorage.removeItem(LOGIN_INTENT_KEY);
-}
-
-// Manager access denial message
-export function setManagerAccessDenied(): void {
-  sessionStorage.setItem(MANAGER_ACCESS_DENIED_KEY, 'true');
-}
-
-export function getManagerAccessDenied(): boolean {
-  return sessionStorage.getItem(MANAGER_ACCESS_DENIED_KEY) === 'true';
-}
-
-export function clearManagerAccessDenied(): void {
-  sessionStorage.removeItem(MANAGER_ACCESS_DENIED_KEY);
-}
-
-// Admin access denial message
-export function setAdminAccessDenied(): void {
-  sessionStorage.setItem(ADMIN_ACCESS_DENIED_KEY, 'true');
-}
-
-export function getAdminAccessDenied(): boolean {
-  return sessionStorage.getItem(ADMIN_ACCESS_DENIED_KEY) === 'true';
-}
-
-export function clearAdminAccessDenied(): void {
-  sessionStorage.removeItem(ADMIN_ACCESS_DENIED_KEY);
+  
+  // Check for role mismatch
+  if (errorMessage.includes('Selected role does not match')) {
+    // Extract the correct role from the error message if possible
+    const roleMatch = errorMessage.match(/Please select '(\w+)'/);
+    if (roleMatch && roleMatch[1]) {
+      return `Your Login ID does not have ${roleMatch[1]} access. Please select the correct role or contact an Admin.`;
+    }
+    return 'The selected role does not match your Login ID. Please select the correct role.';
+  }
+  
+  // Check for invalid credentials (catch various forms)
+  if (
+    errorMessage.toLowerCase().includes('invalid credentials') ||
+    errorMessage.toLowerCase().includes('invalid or non-admin') ||
+    errorMessage.toLowerCase().includes('invalid')
+  ) {
+    return 'Invalid Login ID or password.';
+  }
+  
+  // Default fallback for any other errors - don't expose raw backend messages
+  return 'Invalid Login ID or password.';
 }

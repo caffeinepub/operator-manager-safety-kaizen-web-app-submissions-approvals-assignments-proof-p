@@ -1,63 +1,50 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T18:33:50.957Z",
+  "generatedAt": "2026-02-14T20:00:09.268Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 3,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-40",
-        "summary": "Update the Login page to add a third Internet Identity entry point labeled “Sign in as Admin” alongside the existing “Sign in as Operator” and “Sign in as Manager” options.",
+        "id": "REQ-65",
+        "summary": "Update the Admin Authorization form to prefill the Admin Login ID as \"admin\" and the Password as \"1234\" when the page first loads, while still allowing the user to edit both fields before submitting.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/LoginPage.tsx"
+          "frontend/src/pages/admin/CredentialManagementPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/LoginPage.tsx"
+          "frontend/src/pages/admin/CredentialManagementPage.tsx"
         ]
       },
       {
-        "id": "REQ-41",
-        "summary": "Extend the session-stored login intent logic to support an “admin” intent and implement post-login redirect behavior for the new admin intent.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/loginSelection.ts",
-          "frontend/src/pages/LoginPage.tsx",
-          "frontend/src/pages/DashboardPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/loginSelection.ts",
-          "frontend/src/pages/LoginPage.tsx",
-          "frontend/src/pages/DashboardPage.tsx"
-        ]
+        "id": "REQ-66",
+        "summary": "Change the backend’s default seeded Admin credential password to \"1234\" (Login ID remains \"admin\"), so that a fresh installation can authorize admin actions using admin/1234.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-42",
-        "summary": "Add clear English guidance in the admin area that user access is managed by assigning roles to Internet Identity principals (not by creating usernames/passwords), and explain the onboarding steps for Operators and Managers.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/admin/RoleManagementPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/admin/RoleManagementPage.tsx"
-        ]
+        "id": "REQ-67",
+        "summary": "Ensure the backend Admin Authorization endpoint can successfully authorize on a fresh install even if it is called before any other credential-validation endpoint, by applying the same default-admin seeding behavior when the credential store is empty.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/pages/DashboardPage.tsx",
-    "frontend/src/pages/LoginPage.tsx",
-    "frontend/src/pages/admin/RoleManagementPage.tsx",
-    "frontend/src/utils/loginSelection.ts",
+    "frontend/src/pages/admin/CredentialManagementPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

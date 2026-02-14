@@ -1,24 +1,29 @@
-import Time "mo:core/Time";
-import List "mo:core/List";
 import Map "mo:core/Map";
 import Text "mo:core/Text";
-import Iter "mo:core/Iter";
+import List "mo:core/List";
+import Time "mo:core/Time";
 import Order "mo:core/Order";
 import Int "mo:core/Int";
-import Array "mo:core/Array";
-import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
+import Runtime "mo:core/Runtime";
+import Array "mo:core/Array";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
   include MixinStorage();
 
   // TYPES
+  type LoginId = Text;
+  type HashedPassword = Text;
+  public type Role = { #admin; #operator; #manager };
+
   module KaizenStatus {
     public type KaizenStatus = { #submitted; #approved; #rejected; #assigned; #inProgress; #implemented; #closed };
 
@@ -37,11 +42,18 @@ actor {
       Int.compare(statusOrder(status1), statusOrder(status2));
     };
   };
-  type KaizenStatus = KaizenStatus.KaizenStatus;
+  public type KaizenStatus = KaizenStatus.KaizenStatus;
 
   public type UserProfile = {
     name : Text;
     role : Text; // "Operator", "Manager", etc.
+  };
+
+  type Credential = {
+    id : LoginId;
+    password : HashedPassword;
+    role : Role;
+    enabled : Bool;
   };
 
   type Observation = {
@@ -96,10 +108,11 @@ actor {
     operator : Principal;
     lastActivity : Time.Time;
     name : ?Text;
-    role : ?Text;
+    role : ?Role;
   };
 
   let userProfiles = Map.empty<Principal, UserProfile>();
+  let credentials = Map.empty<LoginId, Credential>();
   let observations = Map.empty<Text, Observation>();
   let kaizens = Map.empty<Text, Kaizen>();
   let photos = Map.empty<Text, Photo>();
@@ -107,41 +120,137 @@ actor {
 
   var isMaintenanceMode : Bool = false;
 
-  // ADMIN BOOTSTRAP CAPABILITY
-  public shared ({ caller }) func hasAdmin() : async Bool {
-    let someAdmin = userProfiles.entries().find(
-      func(entry) {
-        switch (entry.1.role) {
-          case ("Manager") { true };
-          case (_) { false };
+  // SYSTEM CREDENTIALS
+  type SystemCredential = {
+    id : LoginId;
+    password : HashedPassword;
+    role : Role;
+    enabled : Bool;
+  };
+
+  // ---- CREDENTIALS MANAGEMENT ----
+  // Validate credentials for login/disconnect - must be accessible to anonymous users
+  public query func validateCredentials(loginId : LoginId, password : HashedPassword, selectedRole : Role) : async () {
+    // Seed default admin credentials for new installations if empty
+    if (credentials.isEmpty()) {
+      let adminCredential : Credential = {
+        id = "admin";
+        password = "1234";
+        role = #admin;
+        enabled = true;
+      };
+      credentials.add("admin", adminCredential);
+    };
+
+    switch (credentials.get(loginId)) {
+      case (null) {
+        Runtime.trap("Invalid credentials");
+      };
+      case (?cred) {
+        if (cred.password == password) {
+          if (not cred.enabled) {
+            Runtime.trap("This login id is disabled. Please contact your system administrator.");
+          };
+          if (cred.role != selectedRole) {
+            let roleText = switch (cred.role) {
+              case (#admin) { "Admin" };
+              case (#manager) { "Manager" };
+              case (#operator) { "Operator" };
+            };
+            Runtime.trap("Selected role does not match credential. Please select '" # roleText # "' to log in.");
+          };
+        } else {
+          Runtime.trap("Invalid credentials");
         };
-      }
-    );
-    switch (someAdmin) {
-      case (?adminUser) { true };
-      case (null) { false };
+      };
     };
   };
 
-  public shared ({ caller }) func bootstrapAdminIfNeeded() : async () {
-    let someAdmin = userProfiles.entries().find(
-      func(entry) {
-        switch (entry.1.role) {
-          case ("Manager") { true };
-          case (_) { false };
-        };
-      }
-    );
-    switch (someAdmin) {
-      case (?adminUser) {
-        Runtime.trap("Admin/Manager already exists, cannot bootstrap new admin");
+  public type AuthorizationToken = {
+    loginId : LoginId;
+    isAdmin : Bool;
+  };
+
+  public query func authorizeAdmin(loginId : LoginId, password : HashedPassword) : async AuthorizationToken {
+    // Seed default admin credentials if credentials store is empty
+    if (credentials.isEmpty()) {
+      let adminCredential : Credential = {
+        id = "admin";
+        password = "1234";
+        role = #admin;
+        enabled = true;
       };
+      credentials.add("admin", adminCredential);
+    };
+
+    switch (credentials.get(loginId)) {
       case (null) {
-        let newProfile : UserProfile = {
-          name = "Initial Admin";
-          role = "Manager";
+        Runtime.trap("Invalid credentials");
+      };
+      case (?cred) {
+        if (cred.role == #admin and cred.password == password) {
+          if (not cred.enabled) {
+            Runtime.trap("This login id is disabled. Please contact your system administrator.");
+          };
+          {
+            loginId;
+            isAdmin = true;
+          };
+        } else {
+          Runtime.trap("Invalid or non-admin credentials");
         };
-        userProfiles.add(caller, newProfile);
+      };
+    };
+  };
+
+  // Credential CRUD functions (Admin-only)
+  public shared ({ caller }) func createCredentialWithToken(token : AuthorizationToken, loginId : LoginId, password : HashedPassword, role : Role, enabled : Bool) : async () {
+    checkMaintenanceMode(caller);
+    if (not token.isAdmin) {
+      Runtime.trap("Unauthorized: Only admins can create credentials");
+    };
+    switch (credentials.get(loginId)) {
+      case (null) {
+        let newCredential : Credential = {
+          id = loginId;
+          password;
+          role;
+          enabled;
+        };
+        credentials.add(loginId, newCredential);
+      };
+      case (?_existing) {
+        Runtime.trap("Credential already exists");
+      };
+    };
+  };
+
+  public shared ({ caller }) func resetPasswordWithToken(token : AuthorizationToken, loginId : LoginId, newPassword : HashedPassword) : async () {
+    checkMaintenanceMode(caller);
+    if (not token.isAdmin) {
+      Runtime.trap("Unauthorized: Only admins can reset passwords");
+    };
+    switch (credentials.get(loginId)) {
+      case (null) {
+        Runtime.trap("Credential does not exist");
+      };
+      case (?cred) {
+        credentials.add(loginId, { cred with password = newPassword });
+      };
+    };
+  };
+
+  public shared ({ caller }) func setCredentialStatusWithToken(token : AuthorizationToken, loginId : LoginId, enabled : Bool) : async () {
+    checkMaintenanceMode(caller);
+    if (not token.isAdmin) {
+      Runtime.trap("Unauthorized: Only admins can set credential status");
+    };
+    switch (credentials.get(loginId)) {
+      case (null) {
+        Runtime.trap("Credential does not exist");
+      };
+      case (?cred) {
+        credentials.add(loginId, { cred with enabled });
       };
     };
   };
@@ -158,7 +267,7 @@ actor {
 
   public shared ({ caller }) func setMaintenanceMode(enabled : Bool) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins/managers can switch maintenance mode");
+      Runtime.trap("Unauthorized: Only admins can switch maintenance mode");
     };
     isMaintenanceMode := enabled;
   };
@@ -271,7 +380,7 @@ actor {
   public shared ({ caller }) func approveKaizen(kaizenId : Text, comment : Text) : async () {
     checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only managers can approve kaizens");
+      Runtime.trap("Unauthorized: Only admins can approve kaizens");
     };
     switch (kaizens.get(kaizenId)) {
       case (null) { Runtime.trap("Kaizen does not exist") };
@@ -292,7 +401,7 @@ actor {
   public shared ({ caller }) func rejectKaizen(kaizenId : Text, reason : Text) : async () {
     checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only managers can reject kaizens");
+      Runtime.trap("Unauthorized: Only admins can reject kaizens");
     };
     switch (kaizens.get(kaizenId)) {
       case (null) { Runtime.trap("Kaizen does not exist") };
@@ -313,7 +422,7 @@ actor {
   public shared ({ caller }) func assignDepartment(kaizenId : Text, department : Text, tools : Text) : async () {
     checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only managers can assign department");
+      Runtime.trap("Unauthorized: Only admins can assign department");
     };
     switch (kaizens.get(kaizenId)) {
       case (null) { Runtime.trap("Kaizen does not exist") };
@@ -411,7 +520,7 @@ actor {
   public query ({ caller }) func getInactiveOperators(days : Int) : async [OperatorActivity] {
     checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only managers can access inactivity data");
+      Runtime.trap("Unauthorized: Only admins can access inactivity data");
     };
     let threshold = Time.now() - (days * 24 * 60 * 60 * 1_000_000_000);
     operatorActivity.values().toArray().filter(func(activity) { activity.lastActivity < threshold });
@@ -474,7 +583,7 @@ actor {
         };
         role = switch (profile) {
           case (null) { null };
-          case (?p) { ?p.role };
+          case (?p) { null };
         };
       };
       results.add(result);

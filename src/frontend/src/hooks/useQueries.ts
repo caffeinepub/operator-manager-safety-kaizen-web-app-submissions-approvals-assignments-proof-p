@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Observation, Kaizen, KaizenStatus, Photo, OperatorActivity, OperatorProfileActivity, UserProfile } from '../backend';
+import type { Observation, Kaizen, KaizenStatus, Photo, OperatorActivity, OperatorProfileActivity, UserProfile, Role, LoginId, HashedPassword, AuthorizationToken } from '../backend';
 import { UserRole } from '../backend';
 import type { Principal } from '@icp-sdk/core/principal';
 import { ExternalBlob } from '../backend';
@@ -277,6 +277,7 @@ export function useAssignCallerUserRole() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['callerUserRole'] });
     },
   });
 }
@@ -293,7 +294,7 @@ export function useGetMaintenanceMode() {
     },
     enabled: !!actor && !isFetching,
     refetchOnWindowFocus: true,
-    refetchInterval: 30000, // Refetch every 30 seconds to catch mode changes
+    refetchInterval: 30000,
   });
 }
 
@@ -312,34 +313,182 @@ export function useSetMaintenanceMode() {
   });
 }
 
-// Admin Bootstrap
+// Admin Bootstrap - using isCallerAdmin as a proxy for hasAdmin check
 export function useHasAdmin() {
   const { actor, isFetching } = useActor();
 
   return useQuery<boolean>({
     queryKey: ['hasAdmin'],
     queryFn: async () => {
-      if (!actor) return true; // Assume admin exists if actor not ready
-      return actor.hasAdmin();
+      if (!actor) return true;
+      try {
+        await actor.isCallerAdmin();
+        return true;
+      } catch (error) {
+        return false;
+      }
     },
     enabled: !!actor && !isFetching,
     retry: false,
   });
 }
 
-export function useBootstrapAdmin() {
+// Credential-based authentication
+export function useValidateCredentials() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async ({
+      loginId,
+      password,
+      selectedRole,
+    }: {
+      loginId: LoginId;
+      password: HashedPassword;
+      selectedRole: Role;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.validateCredentials(loginId, password, selectedRole);
+      // Return the selected role on success
+      return selectedRole;
+    },
+  });
+}
+
+// Admin Authorization Token Management
+export function useAuthorizeAdmin() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async ({
+      loginId,
+      password,
+    }: {
+      loginId: LoginId;
+      password: HashedPassword;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.authorizeAdmin(loginId, password);
+    },
+  });
+}
+
+// Credential Management (Admin-only with token)
+interface Credential {
+  id: LoginId;
+  role: Role;
+  enabled: boolean;
+}
+
+// Store admin token in memory for the session
+let adminToken: AuthorizationToken | null = null;
+
+export function setAdminToken(token: AuthorizationToken) {
+  adminToken = token;
+}
+
+export function getAdminToken(): AuthorizationToken | null {
+  return adminToken;
+}
+
+export function clearAdminToken() {
+  adminToken = null;
+}
+
+// Mock list credentials - we'll fetch by trying to authorize
+export function useListCredentials() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Credential[]>({
+    queryKey: ['credentials'],
+    queryFn: async () => {
+      if (!actor) return [];
+      // Backend doesn't have a list method, return empty for now
+      // The backend will need to add a listCredentials method
+      return [];
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useCreateCredential() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({
+      loginId,
+      password,
+      role,
+    }: {
+      loginId: LoginId;
+      password: HashedPassword;
+      role: Role;
+    }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.bootstrapAdminIfNeeded();
+      const token = getAdminToken();
+      if (!token) throw new Error('Admin authorization required');
+      return actor.createCredentialWithToken(token, loginId, password, role, true);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
-      queryClient.invalidateQueries({ queryKey: ['hasAdmin'] });
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['credentials'] });
+    },
+  });
+}
+
+export function useResetCredential() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      loginId,
+      newPassword,
+    }: {
+      loginId: LoginId;
+      newPassword: HashedPassword;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      const token = getAdminToken();
+      if (!token) throw new Error('Admin authorization required');
+      return actor.resetPasswordWithToken(token, loginId, newPassword);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credentials'] });
+    },
+  });
+}
+
+export function useDisableCredential() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (loginId: LoginId) => {
+      if (!actor) throw new Error('Actor not available');
+      const token = getAdminToken();
+      if (!token) throw new Error('Admin authorization required');
+      return actor.setCredentialStatusWithToken(token, loginId, false);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credentials'] });
+    },
+  });
+}
+
+export function useEnableCredential() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (loginId: LoginId) => {
+      if (!actor) throw new Error('Actor not available');
+      const token = getAdminToken();
+      if (!token) throw new Error('Admin authorization required');
+      return actor.setCredentialStatusWithToken(token, loginId, true);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credentials'] });
     },
   });
 }

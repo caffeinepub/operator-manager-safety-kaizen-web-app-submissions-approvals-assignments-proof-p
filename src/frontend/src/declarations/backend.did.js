@@ -24,6 +24,17 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const LoginId = IDL.Text;
+export const HashedPassword = IDL.Text;
+export const AuthorizationToken = IDL.Record({
+  'loginId' : LoginId,
+  'isAdmin' : IDL.Bool,
+});
+export const Role = IDL.Variant({
+  'manager' : IDL.Null,
+  'admin' : IDL.Null,
+  'operator' : IDL.Null,
+});
 export const KaizenStatus = IDL.Variant({
   'closed' : IDL.Null,
   'assigned' : IDL.Null,
@@ -63,7 +74,7 @@ export const OperatorProfileActivity = IDL.Record({
   'operator' : IDL.Principal,
   'lastActivity' : Time,
   'name' : IDL.Opt(IDL.Text),
-  'role' : IDL.Opt(IDL.Text),
+  'role' : IDL.Opt(Role),
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text, 'role' : IDL.Text });
 export const OperatorActivity = IDL.Record({
@@ -112,7 +123,16 @@ export const idlService = IDL.Service({
   'approveKaizen' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'assignDepartment' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
-  'bootstrapAdminIfNeeded' : IDL.Func([], [], []),
+  'authorizeAdmin' : IDL.Func(
+      [LoginId, HashedPassword],
+      [AuthorizationToken],
+      ['query'],
+    ),
+  'createCredentialWithToken' : IDL.Func(
+      [AuthorizationToken, LoginId, HashedPassword, Role, IDL.Bool],
+      [],
+      [],
+    ),
   'getAllKaizens' : IDL.Func([], [IDL.Vec(Kaizen)], ['query']),
   'getAllObservations' : IDL.Func([], [IDL.Vec(Observation)], ['query']),
   'getAllOperatorActivity' : IDL.Func(
@@ -147,11 +167,20 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
-  'hasAdmin' : IDL.Func([], [IDL.Bool], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'pingActivity' : IDL.Func([], [], []),
   'rejectKaizen' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'resetPasswordWithToken' : IDL.Func(
+      [AuthorizationToken, LoginId, HashedPassword],
+      [],
+      [],
+    ),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'setCredentialStatusWithToken' : IDL.Func(
+      [AuthorizationToken, LoginId, IDL.Bool],
+      [],
+      [],
+    ),
   'setMaintenanceMode' : IDL.Func([IDL.Bool], [], []),
   'submitKaizen' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Opt(IDL.Text)],
@@ -168,6 +197,11 @@ export const idlService = IDL.Service({
       [IDL.Text, IDL.Text, IDL.Text, ExternalBlob],
       [],
       [],
+    ),
+  'validateCredentials' : IDL.Func(
+      [LoginId, HashedPassword, Role],
+      [],
+      ['query'],
     ),
 });
 
@@ -189,6 +223,17 @@ export const idlFactory = ({ IDL }) => {
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const LoginId = IDL.Text;
+  const HashedPassword = IDL.Text;
+  const AuthorizationToken = IDL.Record({
+    'loginId' : LoginId,
+    'isAdmin' : IDL.Bool,
+  });
+  const Role = IDL.Variant({
+    'manager' : IDL.Null,
+    'admin' : IDL.Null,
+    'operator' : IDL.Null,
   });
   const KaizenStatus = IDL.Variant({
     'closed' : IDL.Null,
@@ -229,7 +274,7 @@ export const idlFactory = ({ IDL }) => {
     'operator' : IDL.Principal,
     'lastActivity' : Time,
     'name' : IDL.Opt(IDL.Text),
-    'role' : IDL.Opt(IDL.Text),
+    'role' : IDL.Opt(Role),
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text, 'role' : IDL.Text });
   const OperatorActivity = IDL.Record({
@@ -278,7 +323,16 @@ export const idlFactory = ({ IDL }) => {
     'approveKaizen' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'assignDepartment' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
-    'bootstrapAdminIfNeeded' : IDL.Func([], [], []),
+    'authorizeAdmin' : IDL.Func(
+        [LoginId, HashedPassword],
+        [AuthorizationToken],
+        ['query'],
+      ),
+    'createCredentialWithToken' : IDL.Func(
+        [AuthorizationToken, LoginId, HashedPassword, Role, IDL.Bool],
+        [],
+        [],
+      ),
     'getAllKaizens' : IDL.Func([], [IDL.Vec(Kaizen)], ['query']),
     'getAllObservations' : IDL.Func([], [IDL.Vec(Observation)], ['query']),
     'getAllOperatorActivity' : IDL.Func(
@@ -317,11 +371,20 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
-    'hasAdmin' : IDL.Func([], [IDL.Bool], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'pingActivity' : IDL.Func([], [], []),
     'rejectKaizen' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'resetPasswordWithToken' : IDL.Func(
+        [AuthorizationToken, LoginId, HashedPassword],
+        [],
+        [],
+      ),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'setCredentialStatusWithToken' : IDL.Func(
+        [AuthorizationToken, LoginId, IDL.Bool],
+        [],
+        [],
+      ),
     'setMaintenanceMode' : IDL.Func([IDL.Bool], [], []),
     'submitKaizen' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Opt(IDL.Text)],
@@ -338,6 +401,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Text, IDL.Text, IDL.Text, ExternalBlob],
         [],
         [],
+      ),
+    'validateCredentials' : IDL.Func(
+        [LoginId, HashedPassword, Role],
+        [],
+        ['query'],
       ),
   });
 };

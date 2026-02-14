@@ -9,7 +9,7 @@ import { FileText, Lightbulb, BarChart3, Activity, ShieldAlert, X } from 'lucide
 import KaizenStatusBadge from '../components/kaizen/KaizenStatusBadge';
 import { KaizenStatus } from '../backend';
 import { useEffect, useState } from 'react';
-import { getManagerAccessDenied, clearManagerAccessDenied, getAdminAccessDenied, clearAdminAccessDenied } from '../utils/loginSelection';
+import { getManagerAccessDenied, clearManagerAccessDenied, getAdminAccessDenied, clearAdminAccessDenied } from '../utils/credentialSession';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -20,12 +20,10 @@ export default function DashboardPage() {
   const [showAdminAccessDenied, setShowAdminAccessDenied] = useState(false);
 
   useEffect(() => {
-    // Check if user was denied manager access
     if (getManagerAccessDenied()) {
       setShowManagerAccessDenied(true);
       clearManagerAccessDenied();
     }
-    // Check if user was denied admin access
     if (getAdminAccessDenied()) {
       setShowAdminAccessDenied(true);
       clearAdminAccessDenied();
@@ -152,17 +150,13 @@ export default function DashboardPage() {
                 <CardDescription>Analytics and management features</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button onClick={() => navigate({ to: '/manager/analytics' })} variant="outline" className="w-full justify-start">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  View Analytics
-                </Button>
-                <Button onClick={() => navigate({ to: '/manager/gaps' })} variant="outline" className="w-full justify-start">
-                  <Activity className="h-4 w-4 mr-2" />
-                  Gaps Analysis
-                </Button>
                 <Button onClick={() => navigate({ to: '/manager/inactivity' })} variant="outline" className="w-full justify-start">
                   <Activity className="h-4 w-4 mr-2" />
                   Inactivity Report
+                </Button>
+                <Button onClick={() => navigate({ to: '/manager/activity' })} variant="outline" className="w-full justify-start">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Operator Activity
                 </Button>
               </CardContent>
             </Card>

@@ -1,64 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add Admin Internet Identity sign-in intent and clarify role-based onboarding (no passwords)",
+  "title": "Prefill Admin Authorization default credentials (admin / 1234)",
   "requirements": [
     {
-      "id": "REQ-40",
-      "summary": "Add a third Internet Identity entry point on /login labeled “Sign in as Admin”, without introducing username/password fields.",
+      "id": "REQ-65",
+      "summary": "Prefill the Admin Authorization form with default credentials (admin / 1234) on initial page load while keeping both fields editable.",
       "acceptanceCriteria": [
-        "/login shows three buttons: “Sign in as Operator”, “Sign in as Manager”, and “Sign in as Admin”.",
-        "Clicking “Sign in as Admin” initiates the same Internet Identity login flow as the other buttons (no username/password fields are added).",
-        "All user-facing text on the Login page remains in English."
+        "When visiting the Admin Credentials Management page and the \"Admin Authorization Required\" form is shown, the \"Admin Login ID\" input is pre-populated with \"admin\".",
+        "When visiting the Admin Credentials Management page and the \"Admin Authorization Required\" form is shown, the \"Password\" input is pre-populated with \"1234\" (masked as a password field).",
+        "The user can overwrite either prefilled value and submit the form normally.",
+        "All user-facing text remains in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/LoginPage.tsx",
+          "path": "frontend/src/pages/admin/CredentialManagementPage.tsx",
           "operation": "modify",
-          "description": "Add a new “Sign in as Admin” button that uses the existing Internet Identity (AuthClient) login flow via useInternetIdentity.login(), persisting a new session-stored login intent value of \"admin\" before initiating login. Use existing UI components (e.g., shadcn Button/Card already used) and keep all copy in English; do not add any username/password inputs. Verify the authorization component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-41",
-      "summary": "Extend session-stored login intent to include “admin” and implement correct post-login redirect/denial handling for the admin intent.",
-      "acceptanceCriteria": [
-        "Login intent storage supports the values: operator, manager, admin.",
-        "After successful Internet Identity login: if intent is admin and the caller is an Admin/Manager, redirect to an admin landing page (use an existing admin route such as /admin/roles).",
-        "After successful Internet Identity login: if intent is admin and the caller is not an Admin/Manager, show a clear English message explaining that Admin access must be assigned by an existing Admin, then redirect to the operator dashboard (/).",
-        "The intent value is cleared after redirect (success or handled denial), consistent with existing operator/manager behavior."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/loginSelection.ts",
-          "operation": "modify",
-          "description": "Extend the LoginIntent union/type and validation logic to support \"admin\" in sessionStorage, and add a parallel session flag utility (similar to manager_access_denied) for admin-intent denial so the app can show a one-time message after redirect. Verify the authorization component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/LoginPage.tsx",
-          "operation": "modify",
-          "description": "Update post-login effect and handleLogin signature to support the \"admin\" intent: after successful Internet Identity login, if intent is \"admin\" and the user is Admin/Manager (as determined by existing useIsCallerAdmin), redirect to /admin/roles; if not Admin/Manager, set the new admin-access-denied session flag, redirect to /, and clear the intent in all handled paths. Keep behavior consistent with existing manager intent logic. Verify the authorization component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/DashboardPage.tsx",
-          "operation": "modify",
-          "description": "Display a clear, English, one-time alert/message when the admin-intent denial flag is present (mirroring the existing manager-access-denied alert pattern), explaining that Admin access must be assigned by an existing Admin via Role Management; then clear the flag so it does not persist. Verify the authorization component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-42",
-      "summary": "Add clear English guidance in the admin area explaining that access is managed via roles assigned to Internet Identity principals (no passwords), including onboarding steps for Operators and Managers.",
-      "acceptanceCriteria": [
-        "An existing admin page (e.g., Role Management) includes a short English section explaining: (1) users sign in with Internet Identity, (2) they share their Principal ID with the Admin, (3) the Admin assigns Operator (User) or Manager/Admin roles.",
-        "The guidance does not mention or imply creating/storing passwords.",
-        "The guidance is visible only to Admin/Manager users (i.e., on an admin-protected route)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/admin/RoleManagementPage.tsx",
-          "operation": "modify",
-          "description": "Add a short English guidance section (within this already admin-protected page) describing the onboarding flow: users sign in with Internet Identity, share their Principal ID with an Admin, and the Admin assigns roles (Operator/User or Admin/Manager). Explicitly avoid any mention or implication of usernames/passwords. Verify the authorization component's usage instructions before implementing."
+          "description": "Update the initial state for the Admin Authorization form inputs so that, on first render, \"Admin Login ID\" is prefilled with \"admin\" and \"Password\" is prefilled with \"1234\" while preserving normal onChange behavior so users can edit either field before submitting. Ensure the password field remains type=\"password\" and do not change any user-facing text."
         }
       ]
     }

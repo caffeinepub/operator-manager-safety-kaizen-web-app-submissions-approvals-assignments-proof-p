@@ -1,73 +1,72 @@
 {
   "kind": "build_request",
-  "title": "Add “Sign in as Admin” Internet Identity entry point and clarify that password-based accounts are not supported",
+  "title": "Set Admin Authorization default credentials to admin / 1234",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-40",
-      "text": "Update the Login page to add a third Internet Identity entry point labeled “Sign in as Admin” alongside the existing “Sign in as Operator” and “Sign in as Manager” options.",
+      "id": "REQ-65",
+      "text": "Update the Admin Authorization form to prefill the Admin Login ID as \"admin\" and the Password as \"1234\" when the page first loads, while still allowing the user to edit both fields before submitting.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-user-1"
         ],
         "quotes": [
-          "See in the log in page add a sign in as admin and the password should be pass and user name should be admin ..."
+          "In admin authorisation page set the admin user id as admin and password as 1234"
         ]
       },
       "acceptanceCriteria": [
-        "/login shows three buttons: “Sign in as Operator”, “Sign in as Manager”, and “Sign in as Admin”.",
-        "Clicking “Sign in as Admin” initiates the same Internet Identity login flow as the other buttons (no username/password fields are added).",
-        "All user-facing text on the Login page remains in English."
+        "When visiting the Admin Credentials Management page and the \"Admin Authorization Required\" form is shown, the \"Admin Login ID\" input is pre-populated with \"admin\".",
+        "When visiting the Admin Credentials Management page and the \"Admin Authorization Required\" form is shown, the \"Password\" input is pre-populated with \"1234\" (masked as a password field).",
+        "The user can overwrite either prefilled value and submit the form normally.",
+        "All user-facing text remains in English."
       ]
     },
     {
-      "id": "REQ-41",
-      "text": "Extend the session-stored login intent logic to support an “admin” intent and implement post-login redirect behavior for the new admin intent.",
-      "target": "frontend",
+      "id": "REQ-66",
+      "text": "Change the backend’s default seeded Admin credential password to \"1234\" (Login ID remains \"admin\"), so that a fresh installation can authorize admin actions using admin/1234.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-user-1"
         ],
         "quotes": [
-          "By log into this admin page I can create user id and password for both the manager and operator so that they can log in by the password I have given to them by configuring in the admin page"
+          "In admin authorisation page set the admin user id as admin and password as 1234"
         ]
       },
       "acceptanceCriteria": [
-        "Login intent storage supports the values: operator, manager, admin.",
-        "After successful Internet Identity login: if intent is admin and the caller is an Admin/Manager, redirect to an admin landing page (use an existing admin route such as /admin/roles).",
-        "After successful Internet Identity login: if intent is admin and the caller is not an Admin/Manager, show a clear English message explaining that Admin access must be assigned by an existing Admin, then redirect to the operator dashboard (/).",
-        "The intent value is cleared after redirect (success or handled denial), consistent with existing operator/manager behavior."
+        "On a fresh install (credential store empty), the system seeds a default Admin credential with Login ID \"admin\" and password \"1234\" (only when the credential store is empty).",
+        "Admin authorization succeeds when using Login ID \"admin\" and password \"1234\".",
+        "No migration is introduced unless it is strictly required to preserve existing canister state."
       ]
     },
     {
-      "id": "REQ-42",
-      "text": "Add clear English guidance in the admin area that user access is managed by assigning roles to Internet Identity principals (not by creating usernames/passwords), and explain the onboarding steps for Operators and Managers.",
-      "target": "frontend",
+      "id": "REQ-67",
+      "text": "Ensure the backend Admin Authorization endpoint can successfully authorize on a fresh install even if it is called before any other credential-validation endpoint, by applying the same default-admin seeding behavior when the credential store is empty.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-user-1"
         ],
         "quotes": [
-          "I can create user id and password for both the manager and operator so that they can log in by the password I have given to them by configuring in the admin page"
+          "In admin authorisation page set the admin user id as admin and password as 1234"
         ]
       },
       "acceptanceCriteria": [
-        "An existing admin page (e.g., Role Management) includes a short English section explaining: (1) users sign in with Internet Identity, (2) they share their Principal ID with the Admin, (3) the Admin assigns Operator (User) or Manager/Admin roles.",
-        "The guidance does not mention or imply creating/storing passwords.",
-        "The guidance is visible only to Admin/Manager users (i.e., on an admin-protected route)."
+        "On a fresh install, calling the admin authorization API first (before any login validation call) still succeeds with admin/1234.",
+        "If credentials already exist, the backend does not overwrite or reset existing credentials during admin authorization."
       ]
     }
   ],
   "constraints": [
-    "Do not implement username/password authentication or any UI that accepts/stores passwords for Operators/Managers/Admins.",
-    "Authentication must remain exclusively via Internet Identity (AuthClient).",
-    "Do not modify files under frontend/src/components/ui or any other immutablePaths listed in SYSTEM_CONTEXT."
+    "Backend must remain a single Motoko actor; keep all Motoko logic in backend/main.mo.",
+    "Do not edit any frontend files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files under frontend/src/components/ui.",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Creating, storing, or managing password-based accounts for Operators or Managers.",
-    "Adding an external database or third-party authentication provider.",
-    "Changing the existing role model beyond using the current Admin/Manager vs Operator (User) permissions already implemented."
+    "Do not implement or change Internet Identity authentication behavior.",
+    "Do not redesign the Admin Authorization UI beyond prefilling the requested default values.",
+    "Do not change role/permission rules or add new roles."
   ],
   "imageRequirements": {
     "required": [],
@@ -76,9 +75,7 @@
   "userProfileUpdate": {
     "goalsToAdd": [],
     "goalsToRemove": [],
-    "preferencesToAdd": [
-      "Use English for all user-facing text"
-    ],
+    "preferencesToAdd": [],
     "preferencesToRemove": [],
     "miscToAdd": [],
     "miscToRemove": [],

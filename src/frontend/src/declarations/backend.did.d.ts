@@ -10,7 +10,9 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AuthorizationToken { 'loginId' : LoginId, 'isAdmin' : boolean }
 export type ExternalBlob = Uint8Array;
+export type HashedPassword = string;
 export interface Kaizen {
   'id' : string,
   'status' : KaizenStatus,
@@ -33,6 +35,7 @@ export type KaizenStatus = { 'closed' : null } |
   { 'implemented' : null } |
   { 'rejected' : null } |
   { 'inProgress' : null };
+export type LoginId = string;
 export interface Observation {
   'id' : string,
   'status' : string,
@@ -51,7 +54,7 @@ export interface OperatorProfileActivity {
   'operator' : Principal,
   'lastActivity' : Time,
   'name' : [] | [string],
-  'role' : [] | [string],
+  'role' : [] | [Role],
 }
 export interface Photo {
   'id' : string,
@@ -62,6 +65,9 @@ export interface Photo {
   'timestamp' : Time,
   'uploader' : Principal,
 }
+export type Role = { 'manager' : null } |
+  { 'admin' : null } |
+  { 'operator' : null };
 export type Time = bigint;
 export interface UserProfile { 'name' : string, 'role' : string }
 export type UserRole = { 'admin' : null } |
@@ -98,7 +104,11 @@ export interface _SERVICE {
   'approveKaizen' : ActorMethod<[string, string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'assignDepartment' : ActorMethod<[string, string, string], undefined>,
-  'bootstrapAdminIfNeeded' : ActorMethod<[], undefined>,
+  'authorizeAdmin' : ActorMethod<[LoginId, HashedPassword], AuthorizationToken>,
+  'createCredentialWithToken' : ActorMethod<
+    [AuthorizationToken, LoginId, HashedPassword, Role, boolean],
+    undefined
+  >,
   'getAllKaizens' : ActorMethod<[], Array<Kaizen>>,
   'getAllObservations' : ActorMethod<[], Array<Observation>>,
   'getAllOperatorActivity' : ActorMethod<[], Array<OperatorProfileActivity>>,
@@ -113,11 +123,18 @@ export interface _SERVICE {
   'getObservationsByType' : ActorMethod<[string], Array<Observation>>,
   'getPhotosForKaizen' : ActorMethod<[string], Array<Photo>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
-  'hasAdmin' : ActorMethod<[], boolean>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'pingActivity' : ActorMethod<[], undefined>,
   'rejectKaizen' : ActorMethod<[string, string], undefined>,
+  'resetPasswordWithToken' : ActorMethod<
+    [AuthorizationToken, LoginId, HashedPassword],
+    undefined
+  >,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'setCredentialStatusWithToken' : ActorMethod<
+    [AuthorizationToken, LoginId, boolean],
+    undefined
+  >,
   'setMaintenanceMode' : ActorMethod<[boolean], undefined>,
   'submitKaizen' : ActorMethod<
     [string, string, string, string, [] | [string]],
@@ -130,6 +147,10 @@ export interface _SERVICE {
   'updateKaizenStatus' : ActorMethod<[string, KaizenStatus], undefined>,
   'uploadPhoto' : ActorMethod<
     [string, string, string, ExternalBlob],
+    undefined
+  >,
+  'validateCredentials' : ActorMethod<
+    [LoginId, HashedPassword, Role],
     undefined
   >,
 }

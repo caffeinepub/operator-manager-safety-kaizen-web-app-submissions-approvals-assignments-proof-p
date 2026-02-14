@@ -1,53 +1,44 @@
 import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/react-router';
-import { useInternetIdentity } from './hooks/useInternetIdentity';
-import { useGetCallerUserProfile } from './hooks/useCurrentUser';
-import { useActivityHeartbeat } from './hooks/useActivityHeartbeat';
-import ProfileSetupDialog from './components/profile/ProfileSetupDialog';
-import AppHeader from './components/layout/AppHeader';
-import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import ObservationNewPage from './pages/observations/ObservationNewPage';
-import ObservationsListPage from './pages/observations/ObservationsListPage';
-import ObservationDetailPage from './pages/observations/ObservationDetailPage';
-import KaizenNewPage from './pages/kaizen/KaizenNewPage';
-import KaizenListPage from './pages/kaizen/KaizenListPage';
-import KaizenDetailPage from './pages/kaizen/KaizenDetailPage';
-import RoleManagementPage from './pages/admin/RoleManagementPage';
-import InactivityDashboardPage from './pages/manager/InactivityDashboardPage';
-import AnalyticsPage from './pages/manager/AnalyticsPage';
-import GapsPage from './pages/manager/GapsPage';
-import OperatorActivityPage from './pages/manager/OperatorActivityPage';
-import MaintenanceModePage from './pages/admin/MaintenanceModePage';
-import AdminSetupPage from './pages/admin/AdminSetupPage';
+import { lazy, Suspense } from 'react';
+import AppLayout from './components/layout/AppLayout';
 import RequireAuth from './components/auth/RequireAuth';
 import RequireRole from './components/auth/RequireRole';
-import AppLayout from './components/layout/AppLayout';
-import { Toaster } from '@/components/ui/sonner';
-import { ThemeProvider } from 'next-themes';
-
-function RootLayout() {
-  const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-  const isAuthenticated = !!identity;
-
-  useActivityHeartbeat();
-
-  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
-
-  return (
-    <div className="min-h-screen bg-background">
-      {isAuthenticated && <AppHeader />}
-      <main>
-        <Outlet />
-      </main>
-      {showProfileSetup && <ProfileSetupDialog />}
-      <Toaster />
-    </div>
-  );
-}
+import DashboardPage from './pages/DashboardPage';
+import LoginPage from './pages/LoginPage';
+import AdminSetupPage from './pages/admin/AdminSetupPage';
+import MaintenancePage from './pages/MaintenancePage';
+import InactivityDashboardPage from './pages/manager/InactivityDashboardPage';
+import OperatorActivityPage from './pages/manager/OperatorActivityPage';
+import RoleManagementPage from './pages/admin/RoleManagementPage';
+import CredentialManagementPage from './pages/admin/CredentialManagementPage';
+import MaintenanceModePage from './pages/admin/MaintenanceModePage';
+import ObservationsListPage from './pages/observations/ObservationsListPage';
+import ObservationDetailPage from './pages/observations/ObservationDetailPage';
+import ObservationFormPage from './pages/observations/ObservationFormPage';
+import KaizenListPage from './pages/kaizen/KaizenListPage';
+import KaizenDetailPage from './pages/kaizen/KaizenDetailPage';
+import KaizenFormPage from './pages/kaizen/KaizenFormPage';
 
 const rootRoute = createRootRoute({
-  component: RootLayout,
+  component: () => <Outlet />,
+});
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  component: LoginPage,
+});
+
+const adminSetupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/setup',
+  component: AdminSetupPage,
+});
+
+const maintenanceRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/maintenance',
+  component: MaintenancePage,
 });
 
 const indexRoute = createRoute({
@@ -60,17 +51,7 @@ const indexRoute = createRoute({
   ),
 });
 
-const observationNewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/observations/new',
-  component: () => (
-    <RequireAuth>
-      <ObservationNewPage />
-    </RequireAuth>
-  ),
-});
-
-const observationsListRoute = createRoute({
+const observationsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/observations',
   component: () => (
@@ -80,7 +61,17 @@ const observationsListRoute = createRoute({
   ),
 });
 
-const observationDetailRoute = createRoute({
+const observationsNewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/observations/new',
+  component: () => (
+    <RequireAuth>
+      <ObservationFormPage />
+    </RequireAuth>
+  ),
+});
+
+const observationsDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/observations/$id',
   component: () => (
@@ -90,22 +81,22 @@ const observationDetailRoute = createRoute({
   ),
 });
 
-const kaizenNewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/kaizen/new',
-  component: () => (
-    <RequireAuth>
-      <KaizenNewPage />
-    </RequireAuth>
-  ),
-});
-
-const kaizenListRoute = createRoute({
+const kaizenRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/kaizen',
   component: () => (
     <RequireAuth>
       <KaizenListPage />
+    </RequireAuth>
+  ),
+});
+
+const kaizenNewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/kaizen/new',
+  component: () => (
+    <RequireAuth>
+      <KaizenFormPage />
     </RequireAuth>
   ),
 });
@@ -120,7 +111,31 @@ const kaizenDetailRoute = createRoute({
   ),
 });
 
-const roleManagementRoute = createRoute({
+const managerInactivityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/manager/inactivity',
+  component: () => (
+    <RequireAuth>
+      <RequireRole requiredRole="manager">
+        <InactivityDashboardPage />
+      </RequireRole>
+    </RequireAuth>
+  ),
+});
+
+const managerActivityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/manager/activity',
+  component: () => (
+    <RequireAuth>
+      <RequireRole requiredRole="manager">
+        <OperatorActivityPage />
+      </RequireRole>
+    </RequireAuth>
+  ),
+});
+
+const adminRolesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin/roles',
   component: () => (
@@ -132,7 +147,19 @@ const roleManagementRoute = createRoute({
   ),
 });
 
-const maintenanceModeRoute = createRoute({
+const adminCredentialsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/credentials',
+  component: () => (
+    <RequireAuth>
+      <RequireRole requiredRole="admin">
+        <CredentialManagementPage />
+      </RequireRole>
+    </RequireAuth>
+  ),
+});
+
+const adminMaintenanceRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin/maintenance',
   component: () => (
@@ -144,87 +171,32 @@ const maintenanceModeRoute = createRoute({
   ),
 });
 
-const adminSetupRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/admin/setup',
-  component: () => (
-    <RequireAuth>
-      <AdminSetupPage />
-    </RequireAuth>
-  ),
-});
-
-const managerInactivityRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/manager/inactivity',
-  component: () => (
-    <RequireAuth>
-      <RequireRole requiredRole="admin">
-        <InactivityDashboardPage />
-      </RequireRole>
-    </RequireAuth>
-  ),
-});
-
-const managerAnalyticsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/manager/analytics',
-  component: () => (
-    <RequireAuth>
-      <RequireRole requiredRole="admin">
-        <AnalyticsPage />
-      </RequireRole>
-    </RequireAuth>
-  ),
-});
-
-const managerGapsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/manager/gaps',
-  component: () => (
-    <RequireAuth>
-      <RequireRole requiredRole="admin">
-        <GapsPage />
-      </RequireRole>
-    </RequireAuth>
-  ),
-});
-
-const managerActivityRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/manager/activity',
-  component: () => (
-    <RequireAuth>
-      <RequireRole requiredRole="admin">
-        <OperatorActivityPage />
-      </RequireRole>
-    </RequireAuth>
-  ),
-});
-
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  observationNewRoute,
-  observationsListRoute,
-  observationDetailRoute,
-  kaizenNewRoute,
-  kaizenListRoute,
-  kaizenDetailRoute,
-  roleManagementRoute,
-  maintenanceModeRoute,
+  loginRoute,
   adminSetupRoute,
+  maintenanceRoute,
+  observationsRoute,
+  observationsNewRoute,
+  observationsDetailRoute,
+  kaizenRoute,
+  kaizenNewRoute,
+  kaizenDetailRoute,
   managerInactivityRoute,
-  managerAnalyticsRoute,
-  managerGapsRoute,
   managerActivityRoute,
+  adminRolesRoute,
+  adminCredentialsRoute,
+  adminMaintenanceRoute,
 ]);
 
 const router = createRouter({ routeTree });
 
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
+
 export default function App() {
-  return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <RouterProvider router={router} />
-    </ThemeProvider>
-  );
+  return <RouterProvider router={router} />;
 }

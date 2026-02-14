@@ -41,7 +41,7 @@ export default function KaizenDetailPage() {
 
   const showDecisionPanel = isAdmin && kaizen.status === KaizenStatus.submitted;
   const showAssignmentPanel = isAdmin && (kaizen.status === KaizenStatus.approved || kaizen.status === KaizenStatus.assigned);
-  const showPhotoUpload = kaizen.status === KaizenStatus.implemented || kaizen.status === KaizenStatus.closed;
+  const showPhotoUploader = kaizen.status === KaizenStatus.implemented || kaizen.status === KaizenStatus.closed;
 
   return (
     <AppLayout>
@@ -68,119 +68,95 @@ export default function KaizenDetailPage() {
           <KaizenStatusBadge status={kaizen.status} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Problem Statement</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap">{kaizen.problemStatement}</p>
-              </CardContent>
-            </Card>
+        {showDecisionPanel && <KaizenDecisionPanel kaizenId={kaizen.id} />}
+        {showAssignmentPanel && (
+          <KaizenAssignmentPanel
+            kaizenId={kaizen.id}
+            currentDepartment={kaizen.assignedDepartment}
+            currentTools={kaizen.requiredTools}
+          />
+        )}
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Suggested Improvement</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap">{kaizen.improvement}</p>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Problem Statement</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-wrap">{kaizen.problemStatement}</p>
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Expected Benefit</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="whitespace-pre-wrap">{kaizen.benefit}</p>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Proposed Improvement</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-wrap">{kaizen.improvement}</p>
+          </CardContent>
+        </Card>
 
-            {kaizen.managerComment && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Manager Comment</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="whitespace-pre-wrap">{kaizen.managerComment}</p>
-                </CardContent>
-              </Card>
-            )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Expected Benefit</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-wrap">{kaizen.benefit}</p>
+          </CardContent>
+        </Card>
 
-            {kaizen.assignedDepartment && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Assignment Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Assigned Department</p>
-                    <p className="font-medium">{kaizen.assignedDepartment}</p>
-                  </div>
-                  {kaizen.requiredTools && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Required Tools / Materials</p>
-                      <p className="whitespace-pre-wrap">{kaizen.requiredTools}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+        {kaizen.managerComment && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Manager Comment</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="whitespace-pre-wrap">{kaizen.managerComment}</p>
+            </CardContent>
+          </Card>
+        )}
 
-            {showPhotoUpload && (
-              <>
-                <KaizenPhotoGallery kaizenId={kaizen.id} />
-                <KaizenPhotoUploader kaizenId={kaizen.id} />
-              </>
-            )}
-          </div>
-
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Timeline</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+        {kaizen.assignedDepartment && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Assignment Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <span className="text-sm font-medium">Assigned Department:</span>
+                <p className="text-sm text-muted-foreground mt-1">{kaizen.assignedDepartment}</p>
+              </div>
+              {kaizen.requiredTools && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Submitted</p>
-                  <p className="text-sm">{format(new Date(Number(kaizen.timestamp) / 1000000), 'MMM d, yyyy h:mm a')}</p>
+                  <span className="text-sm font-medium">Required Tools/Resources:</span>
+                  <p className="text-sm text-muted-foreground mt-1">{kaizen.requiredTools}</p>
                 </div>
-                {kaizen.status !== KaizenStatus.submitted && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Last Updated</p>
-                    <p className="text-sm">{format(new Date(Number(kaizen.lastUpdate) / 1000000), 'MMM d, yyyy h:mm a')}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Metadata</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="text-sm text-muted-foreground">Submitter</p>
-                  <p className="text-xs font-mono break-all">{kaizen.submitter.toString()}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Kaizen ID</p>
-                  <p className="text-xs font-mono break-all">{kaizen.id.slice(0, 40)}...</p>
-                </div>
-              </CardContent>
-            </Card>
+        {showPhotoUploader && <KaizenPhotoUploader kaizenId={kaizen.id} />}
+        <KaizenPhotoGallery kaizenId={kaizen.id} />
 
-            {showDecisionPanel && <KaizenDecisionPanel kaizenId={kaizen.id} />}
-            {showAssignmentPanel && (
-              <KaizenAssignmentPanel
-                kaizenId={kaizen.id}
-                currentDepartment={kaizen.assignedDepartment}
-                currentTools={kaizen.requiredTools}
-              />
-            )}
-          </div>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Metadata</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Submitter</span>
+              <span className="text-sm font-mono">{kaizen.submitter.toString().slice(0, 20)}...</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Last Updated</span>
+              <span className="text-sm">{format(new Date(Number(kaizen.lastUpdate) / 1000000), 'MMM d, yyyy h:mm a')}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Kaizen ID</span>
+              <span className="text-sm font-mono">{kaizen.id.slice(0, 30)}...</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );
