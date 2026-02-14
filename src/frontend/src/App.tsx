@@ -17,6 +17,8 @@ import InactivityDashboardPage from './pages/manager/InactivityDashboardPage';
 import AnalyticsPage from './pages/manager/AnalyticsPage';
 import GapsPage from './pages/manager/GapsPage';
 import OperatorActivityPage from './pages/manager/OperatorActivityPage';
+import MaintenanceModePage from './pages/admin/MaintenanceModePage';
+import AdminSetupPage from './pages/admin/AdminSetupPage';
 import RequireAuth from './components/auth/RequireAuth';
 import RequireRole from './components/auth/RequireRole';
 import AppLayout from './components/layout/AppLayout';
@@ -130,7 +132,29 @@ const roleManagementRoute = createRoute({
   ),
 });
 
-const inactivityRoute = createRoute({
+const maintenanceModeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/maintenance',
+  component: () => (
+    <RequireAuth>
+      <RequireRole requiredRole="admin">
+        <MaintenanceModePage />
+      </RequireRole>
+    </RequireAuth>
+  ),
+});
+
+const adminSetupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/setup',
+  component: () => (
+    <RequireAuth>
+      <AdminSetupPage />
+    </RequireAuth>
+  ),
+});
+
+const managerInactivityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/manager/inactivity',
   component: () => (
@@ -142,7 +166,7 @@ const inactivityRoute = createRoute({
   ),
 });
 
-const analyticsRoute = createRoute({
+const managerAnalyticsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/manager/analytics',
   component: () => (
@@ -154,7 +178,7 @@ const analyticsRoute = createRoute({
   ),
 });
 
-const gapsRoute = createRoute({
+const managerGapsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/manager/gaps',
   component: () => (
@@ -166,7 +190,7 @@ const gapsRoute = createRoute({
   ),
 });
 
-const operatorActivityRoute = createRoute({
+const managerActivityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/manager/activity',
   component: () => (
@@ -178,12 +202,6 @@ const operatorActivityRoute = createRoute({
   ),
 });
 
-const loginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/login',
-  component: LoginPage,
-});
-
 const routeTree = rootRoute.addChildren([
   indexRoute,
   observationNewRoute,
@@ -193,20 +211,15 @@ const routeTree = rootRoute.addChildren([
   kaizenListRoute,
   kaizenDetailRoute,
   roleManagementRoute,
-  inactivityRoute,
-  analyticsRoute,
-  gapsRoute,
-  operatorActivityRoute,
-  loginRoute,
+  maintenanceModeRoute,
+  adminSetupRoute,
+  managerInactivityRoute,
+  managerAnalyticsRoute,
+  managerGapsRoute,
+  managerActivityRoute,
 ]);
 
 const router = createRouter({ routeTree });
-
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router;
-  }
-}
 
 export default function App() {
   return (

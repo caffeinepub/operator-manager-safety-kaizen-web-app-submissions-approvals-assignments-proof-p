@@ -112,6 +112,7 @@ export const idlService = IDL.Service({
   'approveKaizen' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'assignDepartment' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+  'bootstrapAdminIfNeeded' : IDL.Func([], [], []),
   'getAllKaizens' : IDL.Func([], [IDL.Vec(Kaizen)], ['query']),
   'getAllObservations' : IDL.Func([], [IDL.Vec(Observation)], ['query']),
   'getAllOperatorActivity' : IDL.Func(
@@ -128,6 +129,7 @@ export const idlService = IDL.Service({
     ),
   'getKaizen' : IDL.Func([IDL.Text], [Kaizen], ['query']),
   'getKaizensByStatus' : IDL.Func([KaizenStatus], [IDL.Vec(Kaizen)], ['query']),
+  'getMaintenanceMode' : IDL.Func([], [IDL.Bool], ['query']),
   'getObservation' : IDL.Func([IDL.Text], [Observation], ['query']),
   'getObservationsByDate' : IDL.Func(
       [Time, Time],
@@ -145,10 +147,12 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'hasAdmin' : IDL.Func([], [IDL.Bool], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'pingActivity' : IDL.Func([], [], []),
   'rejectKaizen' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'setMaintenanceMode' : IDL.Func([IDL.Bool], [], []),
   'submitKaizen' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Opt(IDL.Text)],
       [],
@@ -274,6 +278,7 @@ export const idlFactory = ({ IDL }) => {
     'approveKaizen' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'assignDepartment' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+    'bootstrapAdminIfNeeded' : IDL.Func([], [], []),
     'getAllKaizens' : IDL.Func([], [IDL.Vec(Kaizen)], ['query']),
     'getAllObservations' : IDL.Func([], [IDL.Vec(Observation)], ['query']),
     'getAllOperatorActivity' : IDL.Func(
@@ -294,6 +299,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Kaizen)],
         ['query'],
       ),
+    'getMaintenanceMode' : IDL.Func([], [IDL.Bool], ['query']),
     'getObservation' : IDL.Func([IDL.Text], [Observation], ['query']),
     'getObservationsByDate' : IDL.Func(
         [Time, Time],
@@ -311,10 +317,12 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'hasAdmin' : IDL.Func([], [IDL.Bool], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'pingActivity' : IDL.Func([], [], []),
     'rejectKaizen' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'setMaintenanceMode' : IDL.Func([IDL.Bool], [], []),
     'submitKaizen' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Opt(IDL.Text)],
         [],

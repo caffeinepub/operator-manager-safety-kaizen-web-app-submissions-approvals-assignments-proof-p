@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Make the "Download CSV" export action easier to find on the manager Inactivity Dashboard by moving it into the page header.
+**Goal:** Add an Admin Internet Identity sign-in entry point and clearly communicate that the app does not support username/password accounts.
 
 **Planned changes:**
-- Relocate the "Download CSV" button from the "Inactive Operators" card header to the Inactivity Dashboard page header row, aligned to the right of the title/description area.
-- Preserve existing conditional visibility: show the button only when there is at least one inactive operator; hide it everywhere when there are none.
-- Keep the CSV export behavior unchanged (same columns and same filename format, including days threshold and current date).
+- Update `/login` to include a third button, “Sign in as Admin”, alongside the existing Operator and Manager options, using the same Internet Identity login flow.
+- Extend the session-stored login intent to support `admin`, including clearing intent after handling, consistent with existing behavior.
+- Implement post-login handling for the `admin` intent: redirect Admin/Manager users to an existing admin landing route (e.g., `/admin/roles`); otherwise show a clear English message about needing Admin-assigned access and redirect to the operator dashboard (`/`).
+- Add a short English guidance section on an existing admin-protected page (e.g., Role Management) explaining role assignment for Internet Identity principals (share Principal ID → Admin assigns Operator or Manager/Admin role) and explicitly not mentioning passwords.
 
-**User-visible outcome:** When there are 1+ inactive operators, managers see a right-aligned "Download CSV" button in the page header near the Inactivity Dashboard title and can download the same CSV as before; when there are 0 inactive operators, no download button is shown.
+**User-visible outcome:** The login page shows three Internet Identity sign-in options (Operator/Manager/Admin). Admin-intent sign-in routes eligible users to the admin area, while ineligible users see an English explanation and are redirected to the operator dashboard. Admin pages clarify that access is managed by assigning roles to Internet Identity principals, not by creating passwords.

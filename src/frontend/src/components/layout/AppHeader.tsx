@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from '@tanstack/react-router';
-import { Menu, User, LogOut, LayoutDashboard, FileText, Lightbulb, Shield, Activity, BarChart3, AlertTriangle, Users } from 'lucide-react';
+import { Menu, User, LogOut, LayoutDashboard, FileText, Lightbulb, Shield, Activity, BarChart3, AlertTriangle, Users, Settings } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useState } from 'react';
 
@@ -43,6 +43,7 @@ export default function AppHeader() {
         { label: 'Inactivity', icon: Activity, path: '/manager/inactivity' },
         { label: 'Operator Activity', icon: Users, path: '/manager/activity' },
         { label: 'Role Management', icon: Shield, path: '/admin/roles' },
+        { label: 'Maintenance Mode', icon: Settings, path: '/admin/maintenance' },
       ]
     : [];
 
@@ -99,40 +100,32 @@ export default function AppHeader() {
               <p className="text-xs text-muted-foreground">Continuous Improvement</p>
             </div>
           </div>
+
           <nav className="hidden md:flex items-center gap-2">
             <NavLinks />
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
-          {userProfile && (
-            <div className="hidden sm:flex items-center gap-2">
-              <div className="text-right">
-                <p className="text-sm font-medium">{userProfile.name}</p>
-                <Badge variant={isAdmin ? 'default' : 'secondary'} className="text-xs">
-                  {isAdmin ? 'Manager' : 'Operator'}
-                </Badge>
-              </div>
-            </div>
-          )}
-
+        <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
+              <Button variant="ghost" size="sm" className="gap-2">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">{userProfile?.name || 'User'}</span>
+                {isAdmin && <Badge variant="secondary" className="hidden sm:inline">Manager</Badge>}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">{userProfile?.name || 'User'}</p>
-                  <p className="text-xs text-muted-foreground">{isAdmin ? 'Manager' : 'Operator'}</p>
+                  <p className="text-xs text-muted-foreground">{userProfile?.role || 'Operator'}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -143,7 +136,7 @@ export default function AppHeader() {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right">
+            <SheetContent side="right" className="w-64">
               <nav className="flex flex-col gap-2 mt-8">
                 <NavLinks mobile />
               </nav>

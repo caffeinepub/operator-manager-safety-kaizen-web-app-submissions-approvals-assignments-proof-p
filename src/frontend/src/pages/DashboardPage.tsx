@@ -1,18 +1,36 @@
 import AppLayout from '../components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useNavigate } from '@tanstack/react-router';
 import { useGetAllObservations, useGetAllKaizens } from '../hooks/useQueries';
 import { useIsCallerAdmin } from '../hooks/useCurrentUser';
-import { FileText, Lightbulb, Plus, BarChart3, Activity } from 'lucide-react';
+import { FileText, Lightbulb, BarChart3, Activity, ShieldAlert, X } from 'lucide-react';
 import KaizenStatusBadge from '../components/kaizen/KaizenStatusBadge';
 import { KaizenStatus } from '../backend';
+import { useEffect, useState } from 'react';
+import { getManagerAccessDenied, clearManagerAccessDenied, getAdminAccessDenied, clearAdminAccessDenied } from '../utils/loginSelection';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { data: observations = [] } = useGetAllObservations();
   const { data: kaizens = [] } = useGetAllKaizens();
   const { data: isAdmin } = useIsCallerAdmin();
+  const [showManagerAccessDenied, setShowManagerAccessDenied] = useState(false);
+  const [showAdminAccessDenied, setShowAdminAccessDenied] = useState(false);
+
+  useEffect(() => {
+    // Check if user was denied manager access
+    if (getManagerAccessDenied()) {
+      setShowManagerAccessDenied(true);
+      clearManagerAccessDenied();
+    }
+    // Check if user was denied admin access
+    if (getAdminAccessDenied()) {
+      setShowAdminAccessDenied(true);
+      clearAdminAccessDenied();
+    }
+  }, []);
 
   const submittedKaizens = kaizens.filter((k) => k.status === KaizenStatus.submitted).length;
   const approvedKaizens = kaizens.filter((k) => k.status === KaizenStatus.approved).length;
@@ -23,6 +41,46 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="space-y-8">
+        {showManagerAccessDenied && (
+          <Alert variant="destructive">
+            <ShieldAlert className="h-5 w-5" />
+            <AlertTitle>Manager Access Not Assigned</AlertTitle>
+            <AlertDescription className="flex items-start justify-between gap-4">
+              <span>
+                Your account is not assigned Manager access yet. Please ask an Admin to assign your role through the Role Management page.
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 shrink-0"
+                onClick={() => setShowManagerAccessDenied(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {showAdminAccessDenied && (
+          <Alert variant="destructive">
+            <ShieldAlert className="h-5 w-5" />
+            <AlertTitle>Admin Access Not Assigned</AlertTitle>
+            <AlertDescription className="flex items-start justify-between gap-4">
+              <span>
+                Your account is not assigned Admin access yet. Admin access must be assigned by an existing Admin through the Role Management page.
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 shrink-0"
+                onClick={() => setShowAdminAccessDenied(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div>
           <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
           <p className="text-muted-foreground">Welcome to your safety and continuous improvement hub</p>

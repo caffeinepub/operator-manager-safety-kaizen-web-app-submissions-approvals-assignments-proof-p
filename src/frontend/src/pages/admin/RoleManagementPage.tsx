@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAssignCallerUserRole, useGetUserProfile } from '../../hooks/useQueries';
 import { UserRole } from '../../backend';
 import { Principal } from '@icp-sdk/core/principal';
 import { toast } from 'sonner';
-import { Shield } from 'lucide-react';
+import { Shield, Info } from 'lucide-react';
 
 export default function RoleManagementPage() {
   const [principalInput, setPrincipalInput] = useState('');
@@ -50,6 +51,20 @@ export default function RoleManagementPage() {
           <h1 className="text-3xl font-bold mb-2">Role Management</h1>
           <p className="text-muted-foreground">Assign roles to users by their principal ID</p>
         </div>
+
+        <Alert>
+          <Info className="h-5 w-5" />
+          <AlertTitle>How User Onboarding Works</AlertTitle>
+          <AlertDescription className="space-y-2 text-sm">
+            <p>This application uses Internet Identity for authentication. Here's how to onboard new users:</p>
+            <ol className="list-decimal list-inside space-y-1 ml-2">
+              <li>New users sign in with Internet Identity (they can choose any role button on the login page)</li>
+              <li>After signing in, users share their Principal ID with you (the Admin)</li>
+              <li>You assign them the appropriate role below: <strong>User (Operator)</strong> or <strong>Admin (Manager)</strong></li>
+            </ol>
+            <p className="mt-2 font-medium">Note: No passwords are created or stored. All authentication is handled securely via Internet Identity.</p>
+          </AlertDescription>
+        </Alert>
 
         <Card>
           <CardHeader>
@@ -120,6 +135,7 @@ export default function RoleManagementPage() {
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>Checking the metadata section on any observation or Kaizen they submitted</li>
               <li>Asking them to share their principal ID with you directly</li>
+              <li>Looking at the operator activity report (for admins)</li>
             </ul>
           </CardContent>
         </Card>

@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-move-the-download-csv-export-button-on-the-manager-inactivity-dashboard-to-a-more-prominent-location-place-it-in-the-page-header-row-next-to-the-inactivity-dashboard-title-description-area-aligned-to-the-right-instead-of-inside-the-inactive-operators-card-header-the-button-must-remain-visible-only-when-there-is-at-least-one-inactive-operator-to-export-and-it-must-continue-to-export-the-same-csv-content-and-filename-format-currently-used",
-      "featureTitle": "Move the \"Download CSV\" export button on the manager Inactivity Dashboard to a more prominent location: place it in the page header row next to the \"Inactivity Dashboard\" title/description area, aligned to the right, instead of inside the \"Inactive Operators\" card header. The button must remain visible only when there is at least one inactive operator to export, and it must continue to export the same CSV content and filename format currently used.",
+      "featureId": "feature-update-the-login-page-to-add-a-third-internet-identity-entry-point-labeled-sign-in-as-admin-alongside-the-existing-sign-in-as-operator-and-sign-in-as-manager-options",
+      "featureTitle": "Update the Login page to add a third Internet Identity entry point labeled “Sign in as Admin” alongside the existing “Sign in as Operator” and “Sign in as Manager” options.",
       "files": [
-        "frontend/src/pages/manager/InactivityDashboardPage.tsx"
+        "frontend/src/pages/LoginPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,7 +17,49 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-31"
+        "REQ-40"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-extend-the-session-stored-login-intent-logic-to-support-an-admin-intent-and-implement-post-login-redirect-behavior-for-the-new-admin-intent",
+      "featureTitle": "Extend the session-stored login intent logic to support an “admin” intent and implement post-login redirect behavior for the new admin intent.",
+      "files": [
+        "frontend/src/pages/DashboardPage.tsx",
+        "frontend/src/pages/LoginPage.tsx",
+        "frontend/src/utils/loginSelection.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-41"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-clear-english-guidance-in-the-admin-area-that-user-access-is-managed-by-assigning-roles-to-internet-identity-principals-not-by-creating-usernames-passwords-and-explain-the-onboarding-steps-for-operators-and-managers",
+      "featureTitle": "Add clear English guidance in the admin area that user access is managed by assigning roles to Internet Identity principals (not by creating usernames/passwords), and explain the onboarding steps for Operators and Managers.",
+      "files": [
+        "frontend/src/pages/admin/RoleManagementPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-42"
       ],
       "confidence": "high"
     }

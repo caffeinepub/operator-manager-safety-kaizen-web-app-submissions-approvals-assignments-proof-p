@@ -105,8 +105,69 @@ actor {
   let photos = Map.empty<Text, Photo>();
   let operatorActivity = Map.empty<Principal, OperatorActivity>();
 
+  var isMaintenanceMode : Bool = false;
+
+  // ADMIN BOOTSTRAP CAPABILITY
+  public shared ({ caller }) func hasAdmin() : async Bool {
+    let someAdmin = userProfiles.entries().find(
+      func(entry) {
+        switch (entry.1.role) {
+          case ("Manager") { true };
+          case (_) { false };
+        };
+      }
+    );
+    switch (someAdmin) {
+      case (?adminUser) { true };
+      case (null) { false };
+    };
+  };
+
+  public shared ({ caller }) func bootstrapAdminIfNeeded() : async () {
+    let someAdmin = userProfiles.entries().find(
+      func(entry) {
+        switch (entry.1.role) {
+          case ("Manager") { true };
+          case (_) { false };
+        };
+      }
+    );
+    switch (someAdmin) {
+      case (?adminUser) {
+        Runtime.trap("Admin/Manager already exists, cannot bootstrap new admin");
+      };
+      case (null) {
+        let newProfile : UserProfile = {
+          name = "Initial Admin";
+          role = "Manager";
+        };
+        userProfiles.add(caller, newProfile);
+      };
+    };
+  };
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Maintenance Mode
+  /////////////////////////////////////////////////////////////////////////////
+  public query ({ caller }) func getMaintenanceMode() : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can check maintenance mode");
+    };
+    isMaintenanceMode;
+  };
+
+  public shared ({ caller }) func setMaintenanceMode(enabled : Bool) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins/managers can switch maintenance mode");
+    };
+    isMaintenanceMode := enabled;
+  };
+
+  /////////////////////////////////////////////////////////////////////////////
   // User Profile Management
+  /////////////////////////////////////////////////////////////////////////////
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
     };
@@ -114,6 +175,7 @@ actor {
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    checkMaintenanceMode(caller);
     if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
@@ -121,14 +183,18 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
   };
 
-  /// Processing Observations
+  /////////////////////////////////////////////////////////////////////////////
+  // Observation Logic
+  /////////////////////////////////////////////////////////////////////////////
   public shared ({ caller }) func submitObservation(obsType : Text, title : Text, description : Text, area : ?Text) : async () {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can submit observations");
     };
@@ -148,6 +214,7 @@ actor {
   };
 
   public query ({ caller }) func getObservationsByType(obsType : Text) : async [Observation] {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view observations");
     };
@@ -155,6 +222,7 @@ actor {
   };
 
   public query ({ caller }) func getObservationsByDate(start : Time.Time, end : Time.Time) : async [Observation] {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view observations");
     };
@@ -162,6 +230,7 @@ actor {
   };
 
   public query ({ caller }) func getObservation(id : Text) : async Observation {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view observations");
     };
@@ -172,6 +241,7 @@ actor {
   };
 
   public shared ({ caller }) func submitKaizen(title : Text, problemStatement : Text, improvement : Text, benefit : Text, department : ?Text) : async () {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can submit kaizens");
     };
@@ -195,8 +265,11 @@ actor {
     updateOperatorActivity(caller);
   };
 
-  /// Kaizen Management Workflow
+  /////////////////////////////////////////////////////////////////////////////
+  // Kaizen Management Workflow
+  /////////////////////////////////////////////////////////////////////////////
   public shared ({ caller }) func approveKaizen(kaizenId : Text, comment : Text) : async () {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only managers can approve kaizens");
     };
@@ -217,6 +290,7 @@ actor {
   };
 
   public shared ({ caller }) func rejectKaizen(kaizenId : Text, reason : Text) : async () {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only managers can reject kaizens");
     };
@@ -237,6 +311,7 @@ actor {
   };
 
   public shared ({ caller }) func assignDepartment(kaizenId : Text, department : Text, tools : Text) : async () {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only managers can assign department");
     };
@@ -258,6 +333,7 @@ actor {
   };
 
   public shared ({ caller }) func updateKaizenStatus(kaizenId : Text, newStatus : KaizenStatus) : async () {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update kaizen status");
     };
@@ -283,8 +359,11 @@ actor {
     };
   };
 
+  /////////////////////////////////////////////////////////////////////////////
   // Photo Uploading
+  /////////////////////////////////////////////////////////////////////////////
   public shared ({ caller }) func uploadPhoto(kaizenId : Text, filename : Text, contentType : Text, blob : Storage.ExternalBlob) : async () {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can upload photos");
     };
@@ -311,14 +390,18 @@ actor {
   };
 
   public query ({ caller }) func getPhotosForKaizen(kaizenId : Text) : async [Photo] {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view photos");
     };
     photos.values().toArray().filter(func(p) { p.kaizenId == kaizenId });
   };
 
-  /// Activity & Analytics
+  /////////////////////////////////////////////////////////////////////////////
+  // Activity & Analytics
+  /////////////////////////////////////////////////////////////////////////////
   public shared ({ caller }) func pingActivity() : async () {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can ping activity");
     };
@@ -326,6 +409,7 @@ actor {
   };
 
   public query ({ caller }) func getInactiveOperators(days : Int) : async [OperatorActivity] {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only managers can access inactivity data");
     };
@@ -334,6 +418,7 @@ actor {
   };
 
   public query ({ caller }) func getKaizensByStatus(status : KaizenStatus) : async [Kaizen] {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view kaizens");
     };
@@ -341,6 +426,7 @@ actor {
   };
 
   public query ({ caller }) func getAllKaizens() : async [Kaizen] {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view kaizens");
     };
@@ -348,6 +434,7 @@ actor {
   };
 
   public query ({ caller }) func getKaizen(id : Text) : async Kaizen {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view kaizens");
     };
@@ -358,14 +445,18 @@ actor {
   };
 
   public query ({ caller }) func getAllObservations() : async [Observation] {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view observations");
     };
     observations.values().toArray();
   };
 
-  /// New Admin-Only Query for Full Operator Activity Report
+  /////////////////////////////////////////////////////////////////////////////
+  // Admin-only Operator Activity Report
+  /////////////////////////////////////////////////////////////////////////////
   public query ({ caller }) func getAllOperatorActivity() : async [OperatorProfileActivity] {
+    checkMaintenanceMode(caller);
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can access full operator activity");
     };
@@ -392,7 +483,25 @@ actor {
     results.toArray();
   };
 
+  /////////////////////////////////////////////////////////////////////////////
   // Helper Functions
+  /////////////////////////////////////////////////////////////////////////////
+  func checkMaintenanceMode(caller : Principal) {
+    switch (AccessControl.getUserRole(accessControlState, caller)) {
+      case (#admin) { () }; // Admins are always allowed.
+      case (#user) {
+        if (isMaintenanceMode) {
+          Runtime.trap("Application is undergoing maintenance. Please try again later. Admins can bypass this check.");
+        };
+      };
+      case (#guest) {
+        if (isMaintenanceMode) {
+          Runtime.trap("Maintenance mode is enabled. Please try again later.");
+        };
+      };
+    };
+  };
+
   func updateOperatorActivity(principal : Principal) {
     operatorActivity.add(principal, { lastActivity = Time.now(); operator = principal });
   };

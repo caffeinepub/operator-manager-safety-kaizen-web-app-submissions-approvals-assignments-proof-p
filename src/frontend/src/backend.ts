@@ -171,39 +171,31 @@ export interface backendInterface {
     _caffeineStorageRefillCashier(refillInformation: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult>;
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-    /**
-     * / Kaizen Management Workflow
-     */
     approveKaizen(kaizenId: string, comment: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     assignDepartment(kaizenId: string, department: string, tools: string): Promise<void>;
+    bootstrapAdminIfNeeded(): Promise<void>;
     getAllKaizens(): Promise<Array<Kaizen>>;
     getAllObservations(): Promise<Array<Observation>>;
-    /**
-     * / New Admin-Only Query for Full Operator Activity Report
-     */
     getAllOperatorActivity(): Promise<Array<OperatorProfileActivity>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getInactiveOperators(days: bigint): Promise<Array<OperatorActivity>>;
     getKaizen(id: string): Promise<Kaizen>;
     getKaizensByStatus(status: KaizenStatus): Promise<Array<Kaizen>>;
+    getMaintenanceMode(): Promise<boolean>;
     getObservation(id: string): Promise<Observation>;
     getObservationsByDate(start: Time, end: Time): Promise<Array<Observation>>;
     getObservationsByType(obsType: string): Promise<Array<Observation>>;
     getPhotosForKaizen(kaizenId: string): Promise<Array<Photo>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    hasAdmin(): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
-    /**
-     * / Activity & Analytics
-     */
     pingActivity(): Promise<void>;
     rejectKaizen(kaizenId: string, reason: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    setMaintenanceMode(enabled: boolean): Promise<void>;
     submitKaizen(title: string, problemStatement: string, improvement: string, benefit: string, department: string | null): Promise<void>;
-    /**
-     * / Processing Observations
-     */
     submitObservation(obsType: string, title: string, description: string, area: string | null): Promise<void>;
     updateKaizenStatus(kaizenId: string, newStatus: KaizenStatus): Promise<void>;
     uploadPhoto(kaizenId: string, filename: string, contentType: string, blob: ExternalBlob): Promise<void>;
@@ -351,6 +343,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async bootstrapAdminIfNeeded(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.bootstrapAdminIfNeeded();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.bootstrapAdminIfNeeded();
+            return result;
+        }
+    }
     async getAllKaizens(): Promise<Array<Kaizen>> {
         if (this.processError) {
             try {
@@ -463,6 +469,20 @@ export class Backend implements backendInterface {
             return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getMaintenanceMode(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getMaintenanceMode();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getMaintenanceMode();
+            return result;
+        }
+    }
     async getObservation(arg0: string): Promise<Observation> {
         if (this.processError) {
             try {
@@ -533,6 +553,20 @@ export class Backend implements backendInterface {
             return from_candid_opt_n22(this._uploadFile, this._downloadFile, result);
         }
     }
+    async hasAdmin(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.hasAdmin();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.hasAdmin();
+            return result;
+        }
+    }
     async isCallerAdmin(): Promise<boolean> {
         if (this.processError) {
             try {
@@ -586,6 +620,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.saveCallerUserProfile(arg0);
+            return result;
+        }
+    }
+    async setMaintenanceMode(arg0: boolean): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setMaintenanceMode(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setMaintenanceMode(arg0);
             return result;
         }
     }

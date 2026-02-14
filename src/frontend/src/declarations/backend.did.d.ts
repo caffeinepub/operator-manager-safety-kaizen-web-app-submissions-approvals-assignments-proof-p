@@ -95,42 +95,34 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  /**
-   * / Kaizen Management Workflow
-   */
   'approveKaizen' : ActorMethod<[string, string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'assignDepartment' : ActorMethod<[string, string, string], undefined>,
+  'bootstrapAdminIfNeeded' : ActorMethod<[], undefined>,
   'getAllKaizens' : ActorMethod<[], Array<Kaizen>>,
   'getAllObservations' : ActorMethod<[], Array<Observation>>,
-  /**
-   * / New Admin-Only Query for Full Operator Activity Report
-   */
   'getAllOperatorActivity' : ActorMethod<[], Array<OperatorProfileActivity>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getInactiveOperators' : ActorMethod<[bigint], Array<OperatorActivity>>,
   'getKaizen' : ActorMethod<[string], Kaizen>,
   'getKaizensByStatus' : ActorMethod<[KaizenStatus], Array<Kaizen>>,
+  'getMaintenanceMode' : ActorMethod<[], boolean>,
   'getObservation' : ActorMethod<[string], Observation>,
   'getObservationsByDate' : ActorMethod<[Time, Time], Array<Observation>>,
   'getObservationsByType' : ActorMethod<[string], Array<Observation>>,
   'getPhotosForKaizen' : ActorMethod<[string], Array<Photo>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'hasAdmin' : ActorMethod<[], boolean>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  /**
-   * / Activity & Analytics
-   */
   'pingActivity' : ActorMethod<[], undefined>,
   'rejectKaizen' : ActorMethod<[string, string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'setMaintenanceMode' : ActorMethod<[boolean], undefined>,
   'submitKaizen' : ActorMethod<
     [string, string, string, string, [] | [string]],
     undefined
   >,
-  /**
-   * / Processing Observations
-   */
   'submitObservation' : ActorMethod<
     [string, string, string, [] | [string]],
     undefined

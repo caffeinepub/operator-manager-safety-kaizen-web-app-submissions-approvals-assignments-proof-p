@@ -1,13 +1,17 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 19,
-  "summary": "Expand manager workflow so that after operators submit any Kaizen, hazard, or SUSA, managers are notified and can approve/reject, and the decision/status is visible to operators in their login experience.",
-  "architectural_notes": [],
+  "projectStateVersion": 25,
+  "summary": "Expand manager workflow so that after operators submit any Kaizen, hazard, or SUSA, managers are notified and can approve/reject, and the decision/status is visible to operators in their login experience. Additionally, add an admin-managed login/credential management capability so manager/operator access can be controlled via an admin page.",
+  "architectural_notes": [
+    "User requested an alternative authentication approach: an Admin-managed userID/password login and credential management page for Operators/Managers (in addition to or instead of Internet Identity).",
+    "User requests password-based authentication: add \"Sign in as Admin\" on login with default credentials admin/pass; Admin can create userID/password for Managers and Operators via an admin page (conflicts with current Internet Identity-only direction)."
+  ],
   "known_issues": [
     "Login page branding/theme changes are not appearing (login page not updated yet).",
     "Deployment/build is failing (deployment encountered an error; internal LLM/build error reported during attempted update).",
     "Requested changes to login flow/UI are not reflected; user still sees the earlier login experience and needs two distinct login options (Operator and Manager).",
-    "Login page is showing a different logo than the one provided/expected (logo asset mismatch)."
+    "Login page is showing a different logo than the one provided/expected (logo asset mismatch).",
+    "User reports being unable to log in as Manager; manager UI/role assignment options are not visible/available in the app as expected."
   ],
   "isFixRequest": false,
   "existing_features": [
@@ -242,6 +246,78 @@
         "REQ-31"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-implement-an-application-wide-maintenance-mode-that-allows-admins-managers-to-make-the-app-effectively-not-live-for-regular-users-when-maintenance-mode-is-enabled-all-non-admin-users-must-be-prevented-from-using-authenticated-app-functionality-and-must-instead-see-a-dedicated-maintenance-screen-with-clear-english-messaging",
+      "title": "Implement an application-wide “Maintenance Mode” that allows admins/managers to make the app effectively “not live” for regular users: when Maintenance Mode is enabled, all non-admin users must be prevented from using authenticated app functionality and must instead see a dedicated Maintenance screen with clear English messaging.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-provide-an-admin-only-ui-control-to-enable-disable-maintenance-mode-from-within-the-app",
+      "title": "Provide an admin-only UI control to enable/disable Maintenance Mode from within the app.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-maintenance-mode-is-enforced-consistently-across-the-app-entry-points-including-when-unauthenticated-users-hit-protected-routes-and-when-authenticated-users-navigate-between-routes",
+      "title": "Ensure Maintenance Mode is enforced consistently across the app entry points, including when unauthenticated users hit protected routes and when authenticated users navigate between routes.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-login-flow-so-that-clicking-sign-in-as-manager-does-not-navigate-to-manager-pages-unless-the-signed-in-principal-actually-has-the-manager-admin-permission-if-the-user-is-not-a-manager-admin-show-a-clear-english-message-explaining-that-manager-access-must-be-assigned-by-an-admin-and-then-route-the-user-to-the-operator-dashboard",
+      "title": "Update the login flow so that clicking “Sign in as Manager” does not navigate to manager pages unless the signed-in principal actually has the Manager/Admin permission; if the user is not a Manager/Admin, show a clear English message explaining that manager access must be assigned by an Admin and then route the user to the Operator dashboard.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-dedicated-in-app-admin-setup-screen-english-ui-that-is-shown-only-when-the-signed-in-user-is-not-an-admin-and-the-backend-indicates-there-is-currently-no-admin-manager-configured-the-screen-must-provide-a-single-action-to-run-the-one-time-admin-bootstrap-and-then-refresh-the-app-s-admin-status",
+      "title": "Add a dedicated in-app Admin Setup screen (English UI) that is shown only when the signed-in user is not an Admin and the backend indicates there is currently no Admin/Manager configured; the screen must provide a single action to run the one-time Admin bootstrap and then refresh the app’s admin status.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-do-not-implement-username-password-based-authentication-instead-ensure-the-ui-copy-explicitly-states-that-authentication-is-handled-via-internet-identity-and-that-admins-manage-access-by-assigning-roles-to-principals",
+      "title": "Do not implement username/password-based authentication; instead, ensure the UI copy explicitly states that authentication is handled via Internet Identity and that Admins manage access by assigning roles to principals.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-login-page-to-add-a-third-internet-identity-entry-point-labeled-sign-in-as-admin-alongside-the-existing-sign-in-as-operator-and-sign-in-as-manager-options",
+      "title": "Update the Login page to add a third Internet Identity entry point labeled “Sign in as Admin” alongside the existing “Sign in as Operator” and “Sign in as Manager” options.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-session-stored-login-intent-logic-to-support-an-admin-intent-and-implement-post-login-redirect-behavior-for-the-new-admin-intent",
+      "title": "Extend the session-stored login intent logic to support an “admin” intent and implement post-login redirect behavior for the new admin intent.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-clear-english-guidance-in-the-admin-area-that-user-access-is-managed-by-assigning-roles-to-internet-identity-principals-not-by-creating-usernames-passwords-and-explain-the-onboarding-steps-for-operators-and-managers",
+      "title": "Add clear English guidance in the admin area that user access is managed by assigning roles to Internet Identity principals (not by creating usernames/passwords), and explain the onboarding steps for Operators and Managers.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -324,6 +400,40 @@
     {
       "id": "AR-13",
       "summary": "Move/reposition the Export button on the manager dashboard to a different location (per user preference)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Unpublish/rollback the current production deployment (make the app not live) to allow further modifications before going live again",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Add backend APIs for reading and updating Maintenance Mode, restricted so only admins/managers can change it, while any authenticated user can read whether Maintenance Mode is enabled (to allow the frontend to decide what to show).",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Add an Admin login/admin page to manage Manager vs Operator credentials (user ID/password) and access, since Manager login via the current flow is not working/visible for the user.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Add an Admin bootstrap capability so the app can recover from the “no admin exists” situation: provide backend APIs to (1) detect whether any Admin/Manager exists and (2) allow a one-time bootstrap action to grant the caller Admin/Manager permissions only if no Admin/Manager exists yet.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Add a third login option: \"Sign in as Admin\" with initial credentials (admin/pass), and an Admin page to create/manage username+password accounts for Managers and Operators (password-based authentication)",
       "reqIds": [],
       "status": "pending"
     }

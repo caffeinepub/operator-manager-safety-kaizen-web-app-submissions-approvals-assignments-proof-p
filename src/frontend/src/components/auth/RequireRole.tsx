@@ -32,7 +32,8 @@ export default function RequireRole({
           <ShieldAlert className="h-5 w-5" />
           <AlertTitle>Access Denied</AlertTitle>
           <AlertDescription>
-            You do not have permission to access this page. Manager access is required.
+            You do not have permission to access this page. Manager access is required. 
+            Please ask an Admin to assign Manager/Admin access to your principal through the Role Management page.
           </AlertDescription>
         </Alert>
         <div className="mt-6 text-center">

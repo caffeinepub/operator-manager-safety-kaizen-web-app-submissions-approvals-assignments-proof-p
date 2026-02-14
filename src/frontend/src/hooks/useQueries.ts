@@ -280,3 +280,66 @@ export function useAssignCallerUserRole() {
     },
   });
 }
+
+// Maintenance Mode
+export function useGetMaintenanceMode() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['maintenanceMode'],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.getMaintenanceMode();
+    },
+    enabled: !!actor && !isFetching,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Refetch every 30 seconds to catch mode changes
+  });
+}
+
+export function useSetMaintenanceMode() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (enabled: boolean) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.setMaintenanceMode(enabled);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['maintenanceMode'] });
+    },
+  });
+}
+
+// Admin Bootstrap
+export function useHasAdmin() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['hasAdmin'],
+    queryFn: async () => {
+      if (!actor) return true; // Assume admin exists if actor not ready
+      return actor.hasAdmin();
+    },
+    enabled: !!actor && !isFetching,
+    retry: false,
+  });
+}
+
+export function useBootstrapAdmin() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.bootstrapAdminIfNeeded();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['hasAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}

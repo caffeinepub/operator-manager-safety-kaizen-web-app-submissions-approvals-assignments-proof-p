@@ -1,40 +1,88 @@
 {
   "kind": "build_request",
-  "title": "Reposition CSV export button on the manager Inactivity Dashboard",
+  "title": "Add “Sign in as Admin” Internet Identity entry point and clarify that password-based accounts are not supported",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-31",
-      "text": "Move the \"Download CSV\" export button on the manager Inactivity Dashboard to a more prominent location: place it in the page header row next to the \"Inactivity Dashboard\" title/description area, aligned to the right, instead of inside the \"Inactive Operators\" card header. The button must remain visible only when there is at least one inactive operator to export, and it must continue to export the same CSV content and filename format currently used.",
+      "id": "REQ-40",
+      "text": "Update the Login page to add a third Internet Identity entry point labeled “Sign in as Admin” alongside the existing “Sign in as Operator” and “Sign in as Manager” options.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "Yes"
+          "See in the log in page add a sign in as admin and the password should be pass and user name should be admin ..."
         ]
       },
       "acceptanceCriteria": [
-        "On the Inactivity Dashboard page, when there are 1+ inactive operators, a \"Download CSV\" button appears in the page header area (near the page title) aligned right.",
-        "The \"Inactive Operators\" card header no longer contains the \"Download CSV\" button.",
-        "When there are 0 inactive operators, the \"Download CSV\" button is not shown anywhere on the page.",
-        "Clicking \"Download CSV\" downloads a CSV with the same columns and filename format as before (Principal, Last Activity, Days Inactive; filename includes the days threshold and current date).",
-        "No changes are made to backend APIs or CSV generation logic beyond the UI relocation."
+        "/login shows three buttons: “Sign in as Operator”, “Sign in as Manager”, and “Sign in as Admin”.",
+        "Clicking “Sign in as Admin” initiates the same Internet Identity login flow as the other buttons (no username/password fields are added).",
+        "All user-facing text on the Login page remains in English."
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "text": "Extend the session-stored login intent logic to support an “admin” intent and implement post-login redirect behavior for the new admin intent.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "By log into this admin page I can create user id and password for both the manager and operator so that they can log in by the password I have given to them by configuring in the admin page"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Login intent storage supports the values: operator, manager, admin.",
+        "After successful Internet Identity login: if intent is admin and the caller is an Admin/Manager, redirect to an admin landing page (use an existing admin route such as /admin/roles).",
+        "After successful Internet Identity login: if intent is admin and the caller is not an Admin/Manager, show a clear English message explaining that Admin access must be assigned by an existing Admin, then redirect to the operator dashboard (/).",
+        "The intent value is cleared after redirect (success or handled denial), consistent with existing operator/manager behavior."
+      ]
+    },
+    {
+      "id": "REQ-42",
+      "text": "Add clear English guidance in the admin area that user access is managed by assigning roles to Internet Identity principals (not by creating usernames/passwords), and explain the onboarding steps for Operators and Managers.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "I can create user id and password for both the manager and operator so that they can log in by the password I have given to them by configuring in the admin page"
+        ]
+      },
+      "acceptanceCriteria": [
+        "An existing admin page (e.g., Role Management) includes a short English section explaining: (1) users sign in with Internet Identity, (2) they share their Principal ID with the Admin, (3) the Admin assigns Operator (User) or Manager/Admin roles.",
+        "The guidance does not mention or imply creating/storing passwords.",
+        "The guidance is visible only to Admin/Manager users (i.e., on an admin-protected route)."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/components/ui (read-only UI components).",
-    "Keep all user-facing text in English."
+    "Do not implement username/password authentication or any UI that accepts/stores passwords for Operators/Managers/Admins.",
+    "Authentication must remain exclusively via Internet Identity (AuthClient).",
+    "Do not modify files under frontend/src/components/ui or any other immutablePaths listed in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Adding new export formats (e.g., PDF, Excel).",
-    "Changing the CSV schema/columns or filename conventions beyond what is needed to relocate the button.",
-    "Adding notifications, toasts, or new manager workflows unrelated to repositioning the export button."
+    "Creating, storing, or managing password-based accounts for Operators or Managers.",
+    "Adding an external database or third-party authentication provider.",
+    "Changing the existing role model beyond using the current Admin/Manager vs Operator (User) permissions already implemented."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [
+      "Use English for all user-facing text"
+    ],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

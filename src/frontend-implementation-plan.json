@@ -1,23 +1,64 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Move Inactivity Dashboard CSV export button into page header",
+  "title": "Add Admin Internet Identity sign-in intent and clarify role-based onboarding (no passwords)",
   "requirements": [
     {
-      "id": "REQ-31",
-      "summary": "Relocate the \"Download CSV\" button on the manager Inactivity Dashboard to the page header (aligned right) while preserving visibility conditions and existing CSV content/filename behavior.",
+      "id": "REQ-40",
+      "summary": "Add a third Internet Identity entry point on /login labeled “Sign in as Admin”, without introducing username/password fields.",
       "acceptanceCriteria": [
-        "On the Inactivity Dashboard page, when there are 1+ inactive operators, a \"Download CSV\" button appears in the page header area (near the page title) aligned right.",
-        "The \"Inactive Operators\" card header no longer contains the \"Download CSV\" button.",
-        "When there are 0 inactive operators, the \"Download CSV\" button is not shown anywhere on the page.",
-        "Clicking \"Download CSV\" downloads a CSV with the same columns and filename format as before (Principal, Last Activity, Days Inactive; filename includes the days threshold and current date).",
-        "No changes are made to backend APIs or CSV generation logic beyond the UI relocation."
+        "/login shows three buttons: “Sign in as Operator”, “Sign in as Manager”, and “Sign in as Admin”.",
+        "Clicking “Sign in as Admin” initiates the same Internet Identity login flow as the other buttons (no username/password fields are added).",
+        "All user-facing text on the Login page remains in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/manager/InactivityDashboardPage.tsx",
+          "path": "frontend/src/pages/LoginPage.tsx",
           "operation": "modify",
-          "description": "Move the existing conditional \"Download CSV\" Button from the \"Inactive Operators\" CardHeader into the page header row next to the \"Inactivity Dashboard\" title/description, aligned to the right via layout classes; keep the same click handler, CSV content mapping, and filename format, and ensure the button remains hidden when inactiveOperators.length === 0. Verify the component's usage instructions before implementing."
+          "description": "Add a new “Sign in as Admin” button that uses the existing Internet Identity (AuthClient) login flow via useInternetIdentity.login(), persisting a new session-stored login intent value of \"admin\" before initiating login. Use existing UI components (e.g., shadcn Button/Card already used) and keep all copy in English; do not add any username/password inputs. Verify the authorization component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "summary": "Extend session-stored login intent to include “admin” and implement correct post-login redirect/denial handling for the admin intent.",
+      "acceptanceCriteria": [
+        "Login intent storage supports the values: operator, manager, admin.",
+        "After successful Internet Identity login: if intent is admin and the caller is an Admin/Manager, redirect to an admin landing page (use an existing admin route such as /admin/roles).",
+        "After successful Internet Identity login: if intent is admin and the caller is not an Admin/Manager, show a clear English message explaining that Admin access must be assigned by an existing Admin, then redirect to the operator dashboard (/).",
+        "The intent value is cleared after redirect (success or handled denial), consistent with existing operator/manager behavior."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/loginSelection.ts",
+          "operation": "modify",
+          "description": "Extend the LoginIntent union/type and validation logic to support \"admin\" in sessionStorage, and add a parallel session flag utility (similar to manager_access_denied) for admin-intent denial so the app can show a one-time message after redirect. Verify the authorization component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/LoginPage.tsx",
+          "operation": "modify",
+          "description": "Update post-login effect and handleLogin signature to support the \"admin\" intent: after successful Internet Identity login, if intent is \"admin\" and the user is Admin/Manager (as determined by existing useIsCallerAdmin), redirect to /admin/roles; if not Admin/Manager, set the new admin-access-denied session flag, redirect to /, and clear the intent in all handled paths. Keep behavior consistent with existing manager intent logic. Verify the authorization component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/DashboardPage.tsx",
+          "operation": "modify",
+          "description": "Display a clear, English, one-time alert/message when the admin-intent denial flag is present (mirroring the existing manager-access-denied alert pattern), explaining that Admin access must be assigned by an existing Admin via Role Management; then clear the flag so it does not persist. Verify the authorization component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-42",
+      "summary": "Add clear English guidance in the admin area explaining that access is managed via roles assigned to Internet Identity principals (no passwords), including onboarding steps for Operators and Managers.",
+      "acceptanceCriteria": [
+        "An existing admin page (e.g., Role Management) includes a short English section explaining: (1) users sign in with Internet Identity, (2) they share their Principal ID with the Admin, (3) the Admin assigns Operator (User) or Manager/Admin roles.",
+        "The guidance does not mention or imply creating/storing passwords.",
+        "The guidance is visible only to Admin/Manager users (i.e., on an admin-protected route)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/admin/RoleManagementPage.tsx",
+          "operation": "modify",
+          "description": "Add a short English guidance section (within this already admin-protected page) describing the onboarding flow: users sign in with Internet Identity, share their Principal ID with an Admin, and the Admin assigns roles (Operator/User or Admin/Manager). Explicitly avoid any mention or implication of usernames/passwords. Verify the authorization component's usage instructions before implementing."
         }
       ]
     }
